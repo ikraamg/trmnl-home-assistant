@@ -1,0 +1,30 @@
+TRMNL Home Assistant Add-on
+Copyright 2024-2025 TRMNL
+
+Based on the "puppet" Home Assistant add-on:
+https://github.com/balloob/home-assistant-addons
+Copyright (c) Paulus Schoutsen
+
+Licensed under Apache License 2.0
+http://www.apache.org/licenses/LICENSE-2.0
+
+================================================================================
+MODIFICATIONS FROM ORIGINAL
+
+Significant enhancements include:
+- Runtime migration from Node.js to Bun
+- Image processing rewrite with GraphicsMagick dithering
+- Cron-based scheduler system with Web UI
+- Various optimizations and improvements
+- Expanded device preset support (38+ devices)
+
+================================================================================
+THIRD-PARTY COMPONENTS
+
+- Puppeteer (Apache-2.0) - https://github.com/puppeteer/puppeteer
+- home-assistant-js-websocket (MIT) - https://github.com/home-assistant/home-assistant-js-websocket
+- node-cron (ISC) - https://github.com/node-cron/node-cron
+- gm/GraphicsMagick (MIT) - https://github.com/aheckmann/gm
+- Bun (MIT) - https://github.com/oven-sh/bun
+
+All components used in accordance with their respective licenses.

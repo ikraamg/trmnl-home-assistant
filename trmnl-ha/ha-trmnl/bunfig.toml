@@ -1,0 +1,17 @@
+# Bun Configuration for TRMNL HA
+# See: https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Use npm registry for compatibility
+registry = "https://registry.npmjs.org"
+
+# Freeze lockfile in CI (equivalent to npm ci)
+frozen-lockfile = true
+
+[test]
+# Test timeout (30 seconds, matching Jest)
+timeout = 30000
+
+[run]
+# Use system shell for scripts
+shell = "system"

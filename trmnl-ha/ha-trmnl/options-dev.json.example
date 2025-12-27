@@ -1,0 +1,6 @@
+{
+  "access_token": "YOUR_LONG_LIVED_ACCESS_TOKEN_HERE",
+  "home_assistant_url": "http://192.168.68.113:8123",
+  "keep_browser_open": false,
+  "chromium_executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+}

@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Test artifacts
+coverage/
+tests/fixtures/snapshots/
+visual-reports/
+*.log
+
+# Dev config
+options-dev.json
+.claude/**/*
+
+# OS files
+.DS_Store

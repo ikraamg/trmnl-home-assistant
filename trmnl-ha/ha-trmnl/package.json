@@ -1,0 +1,44 @@
+{
+  "name": "ha-trmnl",
+  "version": "0.1.0",
+  "description": "Send dashboard screens to your TRMNL",
+  "author": "Ikraam Ghoor (based on puppet by Paulus Schoutsen)",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/usetrmnl/trmnl-home-assistant.git"
+  },
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "bun run main.js",
+    "dev": "bun --watch main.js",
+    "mock:server": "bun run tests/mocks/ha-server.js",
+    "mock:app": "MOCK_HA=true bun run main.js",
+    "test": "bun test",
+    "test:unit": "bun test tests/unit",
+    "test:integration": "MOCK_HA=true bun test tests/integration",
+    "test:all": "bun run test:unit && bun run test:integration",
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "logs:clear": "rm -rf logs/*.log && mkdir -p logs",
+    "release:patch": "bun ../../scripts/release.js patch",
+    "release:minor": "bun ../../scripts/release.js minor",
+    "release:major": "bun ../../scripts/release.js major",
+    "release:dry": "bun ../../scripts/release.js patch --dry-run"
+  },
+  "dependencies": {
+    "gm": "^1.25.1",
+    "home-assistant-js-websocket": "^9.6.0",
+    "node-cron": "^4.2.1",
+    "puppeteer": "^24.34.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0",
+    "ws": "^8.18.0"
+  }
+}

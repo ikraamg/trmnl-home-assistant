@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TRMNL HA - Schedule Manager</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
+
+    <style>
+      :root {
+        --primary: #F8654B;
+        --primary-dark: #b94938;
+        --primary-light: #ff8570;
+      }
+      body {
+        background: #ffffff;
+        min-height: 100vh;
+      }
+      .preview-img {
+        border: 2px solid var(--primary);
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      }
+      .preview-container-scroll {
+        overflow: auto;
+        max-height: 80vh;
+      }
+      .tab-active {
+        background-color: var(--primary);
+        color: white;
+        border-bottom: 2px solid var(--primary);
+      }
+      .tab-inactive {
+        background-color: #f5f5f5;
+        color: #666;
+        border: 1px solid #e0e0e0;
+      }
+      .tab-inactive:hover {
+        background-color: #e8e8e8;
+        border-color: var(--primary-light);
+      }
+    </style>
+  </head>
+
+  <body class="p-4">
+    <div class="container mx-auto max-w-7xl">
+      <!-- Tab Bar -->
+      <div class="flex items-end gap-1 mb-0">
+        <div id="tabBar" class="flex gap-1 flex-wrap">
+          <!-- Tabs will be rendered here by app.js -->
+        </div>
+
+        <button
+          onclick="window.app.createSchedule()"
+          class="px-4 py-2 rounded-t-lg font-semibold transition-all border"
+          style="background-color: #f5f5f5; color: #666; border-color: #e0e0e0"
+          onmouseover="this.style.backgroundColor='#e8e8e8'; this.style.borderColor='var(--primary-light)'"
+          onmouseout="this.style.backgroundColor='#f5f5f5'; this.style.borderColor='#e0e0e0'"
+        >
+          + New
+        </button>
+      </div>
+
+      <!-- Tab Content -->
+      <div id="tabContent" class="bg-white rounded-b-lg rounded-tr-lg shadow-lg p-6">
+        <p class="text-gray-500 text-center py-8">Loading schedules...</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-6 text-center">
+        <a
+          href="https://usetrmnl.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-bold hover:underline transition-opacity"
+          style="color: var(--primary)"
+        >
+          TRMNL HA
+        </a>
+      </div>
+    </div>
+
+    <!-- Crop & Zoom Modal -->
+    <div id="cropModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-auto">
+        <!-- Modal Header -->
+        <div class="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
+          <h2 class="text-xl font-semibold" style="color: var(--primary-dark)">
+            Crop Preview
+          </h2>
+          <button onclick="window.app.closeCropModal()" class="text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Preview Container -->
+        <div class="p-6">
+          <div id="modalPreviewContainer" class="relative bg-gray-100 rounded-lg overflow-hidden mb-6"
+               style="min-height: 500px; display: flex; align-items: center; justify-content: center;">
+
+            <!-- Loading State -->
+            <div id="modalLoading" class="text-center">
+              <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent"
+                   style="border-color: var(--primary); border-top-color: transparent"></div>
+              <p class="mt-4 text-gray-600">Loading screenshot...</p>
+            </div>
+
+            <!-- Screenshot Image (hidden initially) -->
+            <img id="modalPreviewImage" src="" alt="Dashboard Preview" class="hidden max-w-full max-h-full" />
+
+            <!-- Crop Overlay with Interact.js (positioned over image) -->
+            <div id="cropOverlay" class="hidden absolute border-2 border-dashed cursor-move touch-none"
+                 style="border-color: var(--primary); box-shadow: 0 0 0 9999px rgba(0,0,0,0.4); pointer-events: auto;">
+              <!-- Resize indicators (visual only, Interact.js handles the actual resizing) -->
+              <div class="absolute w-full h-full pointer-events-none">
+                <div class="absolute top-0 left-0 w-3 h-3 bg-white border-2 rounded-full -translate-x-1/2 -translate-y-1/2"
+                     style="border-color: var(--primary)"></div>
+                <div class="absolute top-0 right-0 w-3 h-3 bg-white border-2 rounded-full translate-x-1/2 -translate-y-1/2"
+                     style="border-color: var(--primary)"></div>
+                <div class="absolute bottom-0 left-0 w-3 h-3 bg-white border-2 rounded-full -translate-x-1/2 translate-y-1/2"
+                     style="border-color: var(--primary)"></div>
+                <div class="absolute bottom-0 right-0 w-3 h-3 bg-white border-2 rounded-full translate-x-1/2 translate-y-1/2"
+                     style="border-color: var(--primary)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="space-y-4">
+            <!-- Crop Dimensions Display -->
+            <div class="border rounded-lg p-4 bg-gray-50">
+              <div class="text-sm text-gray-600">
+                <div class="flex justify-between">
+                  <span>Crop Region:</span>
+                  <span id="cropDimensions" class="font-mono font-semibold" style="color: var(--primary)">Loading...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex flex-wrap gap-3">
+              <button onclick="window.app.resetCrop()"
+                      class="px-4 py-2 bg-white border-2 rounded-md transition hover:bg-gray-100"
+                      style="border-color: var(--primary); color: var(--primary)">
+                Reset Crop
+              </button>
+              <button onclick="window.app.fitToDevice()"
+                      class="px-4 py-2 bg-white border-2 rounded-md transition hover:bg-gray-100"
+                      style="border-color: var(--primary); color: var(--primary)">
+                Fit to Device Aspect Ratio
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-4 border-t bg-gray-50 sticky bottom-0">
+          <button onclick="window.app.closeCropModal()"
+                  class="px-6 py-2 bg-white border-2 border-gray-300 text-gray-700 rounded-md transition hover:bg-gray-100">
+            Cancel
+          </button>
+          <button onclick="window.app.applyCropSettings()"
+                  class="px-6 py-2 text-white rounded-md transition hover:opacity-90"
+                  style="background-color: var(--primary)">
+            Apply & Save
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Load Application (ES6 Modules) -->
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

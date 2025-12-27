@@ -1,0 +1,558 @@
+{
+  "schedule_trmnl_og": {
+    "name": "TRMNL OG",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "bmp",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_trmnl_og",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_trmnl_x": {
+    "name": "TRMNL X",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1040,
+      "height": 780
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 4,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_trmnl_x",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_trmnl_og_1bit": {
+    "name": "TRMNL OG (1-bit)",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_trmnl_og_1bit",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_trmnl_og_2bit": {
+    "name": "TRMNL OG (2-bit)",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 2,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_trmnl_og_2bit",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_trmnl_rgb": {
+    "name": "TRMNL RGB",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 2560,
+      "height": 1440
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_trmnl_rgb",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_2024": {
+    "name": "Amazon Kindle 2024",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1400,
+      "height": 840
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_2024",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_pw_6th": {
+    "name": "Amazon Kindle PW 6th Gen",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1024,
+      "height": 768
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_pw_6th",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_pw_7th": {
+    "name": "Amazon Kindle PW 7th Gen",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1448,
+      "height": 1072
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_pw_7th",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_7": {
+    "name": "Amazon Kindle 7",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 600
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_7",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_oasis_2": {
+    "name": "Amazon Kindle Oasis 2",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1680,
+      "height": 1264
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_oasis_2",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kindle_scribe": {
+    "name": "Amazon Kindle Scribe",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 2480,
+      "height": 1860
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kindle_scribe",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kobo_libra_2": {
+    "name": "Kobo Libra 2",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1680,
+      "height": 1264
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kobo_libra_2",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kobo_aura_one": {
+    "name": "Kobo Aura One",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1872,
+      "height": 1404
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 8,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kobo_aura_one",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_kobo_aura_hd": {
+    "name": "Kobo Aura HD",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1440,
+      "height": 1080
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 90,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 4,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_kobo_aura_hd",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_inky_7_3": {
+    "name": "Inky Impression 7.3",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "palette": "color-7a",
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100,
+      "normalize": true,
+      "saturationBoost": true
+    },
+    "id": "schedule_inky_7_3",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_inky_13_3": {
+    "name": "Inky Impression 13.3",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1600,
+      "height": 1200
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "palette": "color-6a",
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100,
+      "normalize": true,
+      "saturationBoost": true
+    },
+    "id": "schedule_inky_13_3",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_inkplate_10": {
+    "name": "Inkplate 10",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 1200,
+      "height": 820
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 4,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_inkplate_10",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_classic_mac": {
+    "name": "Classic Macintosh",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 512,
+      "height": 342
+    },
+    "webhook_url": "",
+    "format": "bmp",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_classic_mac",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_playdate": {
+    "name": "Playdate",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 400,
+      "height": 240
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_playdate",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_m5papers3": {
+    "name": "M5PaperS3",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 960,
+      "height": 540
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 4,
+      "gammaCorrection": true,
+      "blackLevel": 0,
+      "whiteLevel": 100
+    },
+    "id": "schedule_m5papers3",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_seeed_e1001": {
+    "name": "Seeed E1001 Monochrome",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 2,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_seeed_e1001",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_seeed_e1002": {
+    "name": "Seeed E1002",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 2,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_seeed_e1002",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_waveshare_4_26": {
+    "name": "Waveshare 4.26\"",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 2,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_waveshare_4_26",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  },
+  "schedule_waveshare_7_5_bw": {
+    "name": "Waveshare 7.5\" B/W",
+    "cron": "0 * * * *",
+    "dashboard_path": "/lovelace/0",
+    "viewport": {
+      "width": 800,
+      "height": 480
+    },
+    "webhook_url": "",
+    "format": "png",
+    "rotate": 0,
+    "dithering": {
+      "enabled": true,
+      "method": "floyd-steinberg",
+      "bitDepth": 1,
+      "gammaCorrection": true,
+      "blackLevel": 4,
+      "whiteLevel": 81
+    },
+    "id": "schedule_waveshare_7_5_bw",
+    "createdAt": "2025-11-19T00:00:00.000Z",
+    "updatedAt": "2025-11-19T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,63 @@
+# Dev files - don't include in image so mounted config takes precedence
+ha-trmnl/options-dev.json
+ha-trmnl/options-dev.json.example
+
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Editor and IDE
+*.swp
+*.swo
+.DS_Store
+.vscode
+.idea
+*.sublime-*
+
+# Docs and documentation
+*.md
+!ha-trmnl/html/*.html
+docs/
+CHANGELOG*
+LICENSE
+CONTRIBUTING*
+
+# Tests and coverage
+ha-trmnl/tests/
+ha-trmnl/**/*.test.js
+coverage/
+.nyc_output/
+*.lcov
+
+# Logs and temp files
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.cache
+tmp/
+temp/
+
+# Build artifacts (if any)
+dist/
+build/
+*.tgz
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+
+# Environment and local config
+.env
+.env.local
+.env.*.local
+
+# OS files
+Thumbs.db
+desktop.ini

@@ -1,0 +1,38 @@
+name: "TRMNL HA"
+description: "Send dashboard screens to your TRMNL"
+version: "0.1.0"
+slug: "trmnl-ha"
+image: ghcr.io/usetrmnl/trmnl-ha-{arch}
+homeassistant_api: true
+init: false
+watchdog: "http://[HOST]:10000/health"
+arch:
+  - aarch64
+  - amd64
+
+# Enable ingress for sidebar integration
+ingress: true
+ingress_port: 10000
+ingress_stream: false
+
+# Sidebar integration
+panel_icon: "mdi:monitor"
+panel_title: "TRMNL HA"
+
+# Keep ports for backward compatibility (optional direct access)
+ports:
+  10000/tcp: null
+ports_description:
+  10000/tcp: "Web UI (use ingress instead)"
+
+# Configuration options
+options:
+  access_token: ""
+  home_assistant_url: "http://homeassistant:8123"
+  keep_browser_open: false
+
+# Schema for options validation
+schema:
+  access_token: str
+  home_assistant_url: str?
+  keep_browser_open: bool?

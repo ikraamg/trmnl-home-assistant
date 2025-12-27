@@ -1,0 +1,26 @@
+{
+  "latitude": 40.7128,
+  "longitude": -74.0060,
+  "elevation": 0,
+  "unit_system": {
+    "length": "mi",
+    "mass": "lb",
+    "temperature": "°F",
+    "volume": "gal"
+  },
+  "location_name": "Mock Home",
+  "time_zone": "America/New_York",
+  "components": ["automation", "frontend", "lovelace", "api", "websocket_api"],
+  "config_dir": "/config",
+  "allowlist_external_dirs": [],
+  "allowlist_external_urls": [],
+  "version": "2024.1.0",
+  "config_source": "storage",
+  "safe_mode": false,
+  "state": "RUNNING",
+  "external_url": null,
+  "internal_url": null,
+  "currency": "USD",
+  "country": "US",
+  "language": "en"
+}

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard 1 - Mock HA</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f1f1f1;
+      color: #212121;
+    }
+
+    body.dark-mode {
+      background: #111111;
+      color: #e1e1e1;
+    }
+
+    hui-card {
+      display: block;
+      margin: 16px;
+      padding: 24px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode hui-card {
+      background: #1c1c1c;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .energy-card {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    h1, h2 {
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+
+    p {
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .metric {
+      display: inline-block;
+      margin-right: 24px;
+      margin-top: 12px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 500;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Mock Dashboard 1 - Alternate test dashboard -->
+  <home-assistant>
+    <template shadowrootmode="open">
+      <home-assistant-main>
+        <template shadowrootmode="open">
+          <partial-panel-resolver>
+            <hui-root>
+              <template shadowrootmode="open">
+                <hui-view>
+                  <template shadowrootmode="open">
+                    <!-- Energy Dashboard -->
+                    <hui-card class="energy-card">
+                      <h1>Energy Dashboard</h1>
+                      <p>Monitor your home's energy consumption</p>
+                      <div style="margin-top: 16px;">
+                        <div class="metric">
+                          <div class="metric-value">1.2 kW</div>
+                          <div class="metric-label">Current Usage</div>
+                        </div>
+                        <div class="metric">
+                          <div class="metric-value">24.8 kWh</div>
+                          <div class="metric-label">Today</div>
+                        </div>
+                        <div class="metric">
+                          <div class="metric-value">$3.42</div>
+                          <div class="metric-label">Cost Today</div>
+                        </div>
+                      </div>
+                    </hui-card>
+
+                    <!-- Device Status -->
+                    <hui-card>
+                      <h2>Connected Devices</h2>
+                      <p style="color: #727272; margin-top: 8px;">12 devices online, 2 offline</p>
+                      <div style="margin-top: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        <div style="padding: 12px; background: #e8f5e9; border-radius: 4px; text-align: center;">
+                          <div style="color: #4caf50; font-size: 20px;">💡</div>
+                          <div style="font-size: 11px; margin-top: 4px;">Lights: 8</div>
+                        </div>
+                        <div style="padding: 12px; background: #e3f2fd; border-radius: 4px; text-align: center;">
+                          <div style="color: #2196f3; font-size: 20px;">🌡</div>
+                          <div style="font-size: 11px; margin-top: 4px;">Climate: 3</div>
+                        </div>
+                        <div style="padding: 12px; background: #fce4ec; border-radius: 4px; text-align: center;">
+                          <div style="color: #e91e63; font-size: 20px;">🔐</div>
+                          <div style="font-size: 11px; margin-top: 4px;">Security: 3</div>
+                        </div>
+                      </div>
+                    </hui-card>
+
+                    <!-- Automation Status -->
+                    <hui-card>
+                      <h2>Active Automations</h2>
+                      <p style="color: #727272; margin-top: 8px;">5 automations running</p>
+                      <div style="margin-top: 12px;">
+                        <div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                          <div style="font-size: 14px;">Morning Routine</div>
+                          <div style="font-size: 11px; color: #4caf50; margin-top: 2px;">✓ Active</div>
+                        </div>
+                        <div style="padding: 8px 0; border-bottom: 1px solid #eee;">
+                          <div style="font-size: 14px;">Energy Saver</div>
+                          <div style="font-size: 11px; color: #4caf50; margin-top: 2px;">✓ Active</div>
+                        </div>
+                        <div style="padding: 8px 0;">
+                          <div style="font-size: 14px;">Night Security</div>
+                          <div style="font-size: 11px; color: #9e9e9e; margin-top: 2px;">○ Idle</div>
+                        </div>
+                      </div>
+                    </hui-card>
+                  </template>
+                </hui-view>
+              </template>
+            </hui-root>
+          </partial-panel-resolver>
+        </template>
+      </home-assistant-main>
+    </template>
+  </home-assistant>
+
+  <script>
+    (function() {
+      const haEl = document.querySelector('home-assistant');
+
+      if (!haEl) {
+        console.error('[Mock] home-assistant element not found');
+        return;
+      }
+
+      haEl._selectLanguage = function(lang, saveToStorage = true) {
+        const language = lang || 'en';
+        document.documentElement.lang = language;
+        console.log(`[Mock] Language set to: ${language}`);
+      };
+
+      haEl.addEventListener('settheme', function(e) {
+        const { theme, dark } = e.detail || {};
+        document.body.classList.toggle('dark-mode', dark === true);
+        if (theme) {
+          document.body.setAttribute('data-theme', theme);
+        }
+        console.log(`[Mock] Theme set: ${theme || 'default'}, dark mode: ${dark ? 'on' : 'off'}`);
+      });
+
+      const panelResolver = haEl.shadowRoot
+        ?.querySelector('home-assistant-main')
+        ?.shadowRoot
+        ?.querySelector('partial-panel-resolver');
+
+      if (panelResolver) {
+        panelResolver._loading = false;
+        console.log('[Mock] Panel resolver marked as loaded');
+      }
+
+      console.log('[Mock] Dashboard 1 initialized');
+    })();
+  </script>
+</body>
+</html>
