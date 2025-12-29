@@ -125,6 +125,7 @@ jobs:
             type=registry,ref=${{ env.REGISTRY }}/${{ env.CACHE_REPO }}:${{ matrix.tag }}
             type=gha,scope=build-${{ matrix.tag }}
           cache-to: ${{ github.event_name == 'push' && format('type=registry,ref={0}/{1}:{2},mode=max', env.REGISTRY, env.CACHE_REPO, matrix.tag) || format('type=gha,mode=max,scope=build-{0}', matrix.tag) }}
+          provenance: false
 
       - name: Verify Bun installation in image
         run: docker run --rm trmnl-ha:test-${{ matrix.tag }} bun --version

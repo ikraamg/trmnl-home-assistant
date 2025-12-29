@@ -50,6 +50,7 @@ jobs:
           push: false
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.CACHE_REPO }}:${{ matrix.tag }}
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.CACHE_REPO }}:${{ matrix.tag }},mode=max
+          provenance: false
 
   warm-bun-cache:
     name: Warm Bun Cache
