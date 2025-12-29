@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    // Add DOM types for browser context
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+    // Override Bun types for browser
+    "types": [],
+
+    // Browser module resolution
+    "moduleResolution": "bundler",
+    "noEmit": true
+  },
+  "include": ["./**/*.ts"],
+  "exclude": []
+}

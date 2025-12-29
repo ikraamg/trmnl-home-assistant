@@ -9,12 +9,12 @@
     "url": "https://github.com/usetrmnl/trmnl-home-assistant.git"
   },
   "type": "module",
-  "main": "main.js",
+  "main": "main.ts",
   "scripts": {
-    "start": "bun run main.js",
-    "dev": "bun --watch main.js",
+    "start": "bun run main.ts",
+    "dev": "bun --watch main.ts",
     "mock:server": "bun run tests/mocks/ha-server.js",
-    "mock:app": "MOCK_HA=true bun run main.js",
+    "mock:app": "MOCK_HA=true bun run main.ts",
     "test": "bun test",
     "test:unit": "bun test tests/unit",
     "test:integration": "MOCK_HA=true bun test tests/integration",
@@ -23,6 +23,8 @@
     "test:watch": "bun test --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit --watch",
     "logs:clear": "rm -rf logs/*.log && mkdir -p logs",
     "release:patch": "bun ../../scripts/release.js patch",
     "release:minor": "bun ../../scripts/release.js minor",
@@ -37,8 +39,15 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@types/gm": "^1.25.4",
+    "@types/node": "^25.0.3",
+    "@types/node-cron": "^3.0.11",
+    "@types/ws": "^8.18.1",
+    "bun-types": "^1.3.5",
     "eslint": "^9.39.2",
     "globals": "^16.5.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.50.1",
     "ws": "^8.18.0"
   }
 }

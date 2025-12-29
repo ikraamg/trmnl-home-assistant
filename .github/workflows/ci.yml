@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, develop]
 
+env:
+  REGISTRY: ghcr.io
+  CACHE_REPO: ${{ github.repository_owner }}/trmnl-ha-cache
+
 jobs:
   lint:
     name: Lint
@@ -17,6 +21,13 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('trmnl-ha/ha-trmnl/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
 
       - name: Install dependencies
         working-directory: trmnl-ha/ha-trmnl
@@ -36,6 +47,13 @@ jobs:
         uses: oven-sh/setup-bun@v1
         with:
           bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('trmnl-ha/ha-trmnl/bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
 
       - name: Install GraphicsMagick
         run: sudo apt-get update && sudo apt-get install -y graphicsmagick
@@ -64,9 +82,17 @@ jobs:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: [lint, test]
+    # NOTE: Write to packages needed for registry cache on push to main
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
+        include:
+          - platform: linux/amd64
+            tag: amd64
+          - platform: linux/arm64
+            tag: arm64
     steps:
       - uses: actions/checkout@v4
 
@@ -76,27 +102,36 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      # Login to GHCR for registry cache (read for PRs, write for push)
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # NOTE: Registry cache is branch-agnostic - PR builds reuse main's cache!
+      # On push to main: update the shared registry cache
+      # On PR: read from registry cache, write to GHA cache (branch-scoped fallback)
       - name: Build Docker image
-        working-directory: trmnl-ha
-        env:
-          PLATFORM_TAG: ${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
-        run: |
-          docker buildx build \
-            --platform ${{ matrix.platform }} \
-            --tag trmnl-ha:test-${PLATFORM_TAG} \
-            --load \
-            .
+        uses: docker/build-push-action@v5
+        with:
+          context: trmnl-ha
+          platforms: ${{ matrix.platform }}
+          push: false
+          load: true
+          tags: trmnl-ha:test-${{ matrix.tag }}
+          cache-from: |
+            type=registry,ref=${{ env.REGISTRY }}/${{ env.CACHE_REPO }}:${{ matrix.tag }}
+            type=gha,scope=build-${{ matrix.tag }}
+          cache-to: ${{ github.event_name == 'push' && format('type=registry,ref={0}/{1}:{2},mode=max', env.REGISTRY, env.CACHE_REPO, matrix.tag) || format('type=gha,mode=max,scope=build-{0}', matrix.tag) }}
 
       - name: Verify Bun installation in image
-        env:
-          PLATFORM_TAG: ${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
-        run: docker run --rm trmnl-ha:test-${PLATFORM_TAG} bun --version
+        run: docker run --rm trmnl-ha:test-${{ matrix.tag }} bun --version
 
       - name: Test image can start
-        env:
-          PLATFORM_TAG: ${{ matrix.platform == 'linux/amd64' && 'amd64' || 'arm64' }}
         run: |
-          docker run -d --name test-container trmnl-ha:test-${PLATFORM_TAG}
+          docker run -d --name test-container trmnl-ha:test-${{ matrix.tag }}
           sleep 5
           docker logs test-container
           docker stop test-container

@@ -1,0 +1,330 @@
+/**
+ * HTTP Router Module
+ *
+ * Maps incoming HTTP requests to appropriate handlers for:
+ * - UI endpoints (root page at /)
+ * - API endpoints (schedules, devices, presets CRUD)
+ * - Health checks (/health)
+ * - Static file serving (JS, CSS, images)
+ *
+ * @module lib/http-router
+ */
+
+import type { IncomingMessage, ServerResponse } from 'node:http'
+import { readFile } from 'node:fs/promises'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import { handleUIRequest } from '../ui.js'
+import {
+  loadSchedules,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule,
+} from './scheduleStore.js'
+import { loadDevicesConfig, loadPresets } from '../devices.js'
+import type { BrowserFacade } from './browserFacade.js'
+import type { ScheduleInput, ScheduleUpdate } from '../types/domain.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const HTML_DIR = join(__dirname, '..', 'html')
+
+/** MIME types for static file serving */
+const MIME_TYPES: Record<string, string> = {
+  js: 'application/javascript',
+  css: 'text/css',
+  json: 'application/json',
+  png: 'image/png',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+  ico: 'image/x-icon',
+}
+
+/** Scheduler interface for manual execution */
+interface Scheduler {
+  executeNow(
+    scheduleId: string
+  ): Promise<{ success: boolean; savedPath: string }>
+}
+
+/**
+ * HTTP router dispatching requests to handlers based on URL paths and methods.
+ */
+export class HttpRouter {
+  #facade: BrowserFacade
+  #scheduler: Scheduler | null
+
+  constructor(facade: BrowserFacade, scheduler: Scheduler | null = null) {
+    this.#facade = facade
+    this.#scheduler = scheduler
+  }
+
+  /** Reads HTTP request body as string */
+  async #readRequestBody(request: IncomingMessage): Promise<string> {
+    return new Promise((resolve, reject) => {
+      let body = ''
+      request.on('data', (chunk: Buffer) => (body += chunk.toString()))
+      request.on('end', () => resolve(body))
+      request.on('error', reject)
+    })
+  }
+
+  /**
+   * Sets the scheduler instance (called after construction)
+   */
+  setScheduler(scheduler: Scheduler): void {
+    this.#scheduler = scheduler
+  }
+
+  /**
+   * Routes incoming HTTP request to appropriate handler.
+   * @returns True if route was handled, false if caller should handle
+   */
+  async route(
+    request: IncomingMessage,
+    response: ServerResponse,
+    requestUrl: URL
+  ): Promise<boolean> {
+    const { pathname } = requestUrl
+
+    if (pathname === '/health') {
+      return this.#handleHealth(response)
+    }
+
+    if (pathname === '/favicon.ico') {
+      response.statusCode = 404
+      response.end()
+      return true
+    }
+
+    if (pathname === '/') {
+      await handleUIRequest(response)
+      return true
+    }
+
+    if (pathname === '/api/schedules') {
+      return this.#handleSchedulesAPI(request, response)
+    }
+
+    if (pathname.startsWith('/api/schedules/')) {
+      if (pathname.endsWith('/send')) {
+        return this.#handleScheduleSendAPI(request, response, requestUrl)
+      }
+      return this.#handleScheduleAPI(request, response, requestUrl)
+    }
+
+    if (pathname === '/api/devices') {
+      return this.#handleDevicesAPI(response)
+    }
+
+    if (pathname === '/api/presets') {
+      return this.#handlePresetsAPI(response)
+    }
+
+    if (pathname.startsWith('/js/') || pathname.startsWith('/css/')) {
+      return this.#handleStaticFile(response, pathname)
+    }
+
+    return false
+  }
+
+  #handleHealth(response: ServerResponse): boolean {
+    const health = this.#facade.checkHealth()
+    const stats = this.#facade.getStats()
+
+    const status = health.healthy ? 'ok' : 'degraded'
+    const httpStatus = health.healthy ? 200 : 503
+
+    response.writeHead(httpStatus, { 'Content-Type': 'application/json' })
+    response.end(
+      JSON.stringify({
+        status,
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        browser: { ...health, ...stats },
+      })
+    )
+
+    return true
+  }
+
+  async #handleSchedulesAPI(
+    request: IncomingMessage,
+    response: ServerResponse
+  ): Promise<boolean> {
+    response.setHeader('Content-Type', 'application/json')
+
+    if (request.method === 'GET') {
+      const schedules = loadSchedules()
+      response.writeHead(200)
+      response.end(JSON.stringify(schedules))
+      return true
+    }
+
+    if (request.method === 'POST') {
+      try {
+        const body = await this.#readRequestBody(request)
+        const schedule = JSON.parse(body) as ScheduleInput
+        const created = createSchedule(schedule)
+        response.writeHead(201)
+        response.end(JSON.stringify(created))
+      } catch (err) {
+        response.writeHead(400)
+        response.end(JSON.stringify({ error: (err as Error).message }))
+      }
+      return true
+    }
+
+    response.writeHead(405)
+    response.end(JSON.stringify({ error: 'Method not allowed' }))
+    return true
+  }
+
+  async #handleScheduleAPI(
+    request: IncomingMessage,
+    response: ServerResponse,
+    requestUrl: URL
+  ): Promise<boolean> {
+    response.setHeader('Content-Type', 'application/json')
+
+    const id = requestUrl.pathname.split('/').pop()!
+
+    if (request.method === 'PUT') {
+      try {
+        const body = await this.#readRequestBody(request)
+        const updates = JSON.parse(body) as ScheduleUpdate
+        const updated = updateSchedule(id, updates)
+
+        if (!updated) {
+          response.writeHead(404)
+          response.end(JSON.stringify({ error: 'Schedule not found' }))
+          return true
+        }
+
+        response.writeHead(200)
+        response.end(JSON.stringify(updated))
+      } catch (err) {
+        response.writeHead(400)
+        response.end(JSON.stringify({ error: (err as Error).message }))
+      }
+      return true
+    }
+
+    if (request.method === 'DELETE') {
+      const deleted = deleteSchedule(id)
+
+      if (!deleted) {
+        response.writeHead(404)
+        response.end(JSON.stringify({ error: 'Schedule not found' }))
+        return true
+      }
+
+      response.writeHead(200)
+      response.end(JSON.stringify({ success: true }))
+      return true
+    }
+
+    response.writeHead(405)
+    response.end(JSON.stringify({ error: 'Method not allowed' }))
+    return true
+  }
+
+  async #handleScheduleSendAPI(
+    request: IncomingMessage,
+    response: ServerResponse,
+    requestUrl: URL
+  ): Promise<boolean> {
+    response.setHeader('Content-Type', 'application/json')
+
+    if (request.method !== 'POST') {
+      response.writeHead(405)
+      response.end(JSON.stringify({ error: 'Method not allowed' }))
+      return true
+    }
+
+    if (!this.#scheduler) {
+      response.writeHead(503)
+      response.end(JSON.stringify({ error: 'Scheduler not available' }))
+      return true
+    }
+
+    const pathParts = requestUrl.pathname.split('/')
+    const id = pathParts[pathParts.length - 2]!
+
+    try {
+      const result = await this.#scheduler.executeNow(id)
+      response.writeHead(200)
+      response.end(JSON.stringify(result))
+    } catch (err) {
+      console.error('Error executing schedule manually:', err)
+      response.writeHead(
+        (err as Error).message.includes('not found') ? 404 : 500
+      )
+      response.end(JSON.stringify({ error: (err as Error).message }))
+    }
+
+    return true
+  }
+
+  #handleDevicesAPI(response: ServerResponse): boolean {
+    const devices = loadDevicesConfig()
+    response.writeHead(200, { 'Content-Type': 'application/json' })
+    response.end(JSON.stringify(devices))
+    return true
+  }
+
+  #handlePresetsAPI(response: ServerResponse): boolean {
+    const presets = loadPresets()
+    response.writeHead(200, { 'Content-Type': 'application/json' })
+    response.end(JSON.stringify(presets))
+    return true
+  }
+
+  async #handleStaticFile(
+    response: ServerResponse,
+    pathname: string
+  ): Promise<boolean> {
+    try {
+      const filePath = join(HTML_DIR, pathname)
+      let content: Buffer | string
+      let contentType: string
+
+      const ext = pathname.split('.').pop() || ''
+
+      // If requesting .js, check for .ts file first (TypeScript frontend)
+      if (ext === 'js') {
+        const tsPath = filePath.replace(/\.js$/, '.ts')
+        try {
+          const tsContent = await readFile(tsPath, 'utf-8')
+          // Transpile TypeScript to JavaScript using Bun
+          const transpiler = new Bun.Transpiler({ loader: 'ts' })
+          content = transpiler.transformSync(tsContent)
+          contentType = 'application/javascript'
+        } catch {
+          // Fall back to .js file if .ts doesn't exist
+          content = await readFile(filePath)
+          contentType = MIME_TYPES[ext] || 'text/plain'
+        }
+      } else {
+        content = await readFile(filePath)
+        contentType = MIME_TYPES[ext] || 'text/plain'
+      }
+
+      const contentLength =
+        typeof content === 'string' ? Buffer.byteLength(content) : content.length
+
+      response.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': contentLength,
+      })
+      response.end(content)
+      return true
+    } catch (_err) {
+      response.statusCode = 404
+      response.end('Not Found')
+      return true
+    }
+  }
+}

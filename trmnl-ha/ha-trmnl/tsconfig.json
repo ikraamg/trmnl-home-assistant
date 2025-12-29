@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    // Strict Type Checking
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+
+    // Module System (ESM)
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
+    "lib": ["ESNext", "DOM"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+
+    // Emit Settings (Bun handles runtime - no emit needed)
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    // Additional Type Safety
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    // Bun Types
+    "types": ["bun-types"],
+
+    // Path Aliases (optional)
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*": ["lib/*"],
+      "@types/*": ["types/*"]
+    }
+  },
+  "include": [
+    "*.ts",
+    "lib/**/*.ts",
+    "tests/**/*.ts",
+    "types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "html/js/**/*",
+    "coverage"
+  ]
+}

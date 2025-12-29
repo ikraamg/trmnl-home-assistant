@@ -12,11 +12,13 @@ http://www.apache.org/licenses/LICENSE-2.0
 MODIFICATIONS FROM ORIGINAL
 
 Significant enhancements include:
+- Full TypeScript rewrite with strict typing
 - Runtime migration from Node.js to Bun
 - Image processing rewrite with GraphicsMagick dithering
-- Cron-based scheduler system with Web UI
-- Various optimizations and improvements
-- Expanded device preset support (38+ devices)
+- Cron-based scheduler system with Web UI and webhook integration
+- Browser health monitoring with automatic crash recovery
+- Comprehensive test suite (unit + integration)
+- Expanded device preset support
 
 ================================================================================
 THIRD-PARTY COMPONENTS

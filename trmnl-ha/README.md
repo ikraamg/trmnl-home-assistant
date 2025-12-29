@@ -210,22 +210,22 @@ This project is based on the [puppet](https://github.com/balloob/home-assistant-
 
 **Major Enhancements in TRMNL HA:**
 
+- **TypeScript Rewrite:** Full rewrite with strict typing and modern ES modules
 - **Runtime Migration:** Migrated from Node.js to Bun for improved performance
 - **Image Processing Rewrite:** Replaced Sharp with GraphicsMagick, implementing strategy pattern for dithering algorithms
 - **Scheduler System:** Added cron-based automation with Web UI management and webhook integration
 - **Browser Health & Recovery:** Automatic crash detection and two-stage recovery system
-- **Process Supervision:** Built-in log rotation and memory monitoring with automatic restart
 - **Comprehensive Testing:** 90%+ test coverage with unit and integration tests
-- **Expanded Device Support:** Grew from 1 to 38+ device presets
+- **Expanded Device Support:** Grew from 1 to 24+ device presets
 
-See the [NOTICE](../NOTICE) file for complete attribution and modification details.
+See the [NOTICE](NOTICE) file for complete attribution and modification details.
 
 ## License
 
 Copyright (c) Paulus Schoutsen (original work)
 Copyright (c) 2024-2025 TRMNL (enhancements and modifications)
 
-Licensed under the [Apache License 2.0](../LICENSE)
+Licensed under the [Apache License 2.0](LICENSE)
 
 ## Links
 

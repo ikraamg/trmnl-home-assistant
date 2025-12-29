@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # TRMNL HA Add-on Dockerfile
 # Multi-stage build for optimized image size while maintaining compatibility
 # Uses Debian Bookworm for updated packages and better security
@@ -10,13 +11,14 @@ FROM debian:bookworm-slim AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install Bun and prepare dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# NOTE: Using BuildKit cache mounts for apt to speed up rebuilds
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     curl \
     unzip \
     ca-certificates \
-    && curl -fsSL https://bun.sh/install | bash \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && curl -fsSL https://bun.sh/install | bash
 
 # Add Bun to PATH for this stage
 ENV BUN_INSTALL="/root/.bun"
@@ -29,8 +31,10 @@ COPY ha-trmnl/package.json ha-trmnl/bunfig.toml ha-trmnl/bun.lock ./
 
 # Install dependencies
 # Skip Puppeteer's bundled Chrome - we'll use system Chromium in runtime stage
+# NOTE: Using BuildKit cache mount for bun to speed up dependency installation
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-RUN bun install --frozen-lockfile --production
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --production
 
 # =============================================================================
 # STAGE 2: RUNTIME
@@ -42,7 +46,10 @@ ENV TZ=Etc/UTC
 
 # Install only runtime dependencies
 # NOTE: Grouped by purpose for clarity and maintainability
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# NOTE: Using BuildKit cache mounts for apt to speed up rebuilds
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
     # Browser runtime for Puppeteer
     chromium \
     chromium-sandbox \
@@ -52,10 +59,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # CJK font support for international dashboards
     fonts-noto-cjk \
     # Image processing for dithering algorithms
-    graphicsmagick \
-    # Cleanup aggressively to minimize image size
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /var/cache/apt/*
+    graphicsmagick
 
 # Copy Bun runtime from builder stage
 COPY --from=builder /root/.bun /root/.bun
