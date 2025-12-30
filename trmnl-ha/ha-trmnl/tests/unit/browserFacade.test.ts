@@ -241,7 +241,8 @@ describe('BrowserFacade', () => {
 
     it('tracks timeSinceSuccess in milliseconds', async () => {
       facade.recordSuccess()
-      await new Promise((r) => setTimeout(r, 50))
+      // Wait 100ms but only check for >= 50ms to account for CI timing variance
+      await new Promise((r) => setTimeout(r, 100))
 
       const stats = facade.getStats()
 
