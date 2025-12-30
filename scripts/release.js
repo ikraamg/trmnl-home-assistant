@@ -13,6 +13,7 @@ import { dirname, join } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const ROOT_DIR = join(__dirname, '..')
+const GITHUB_REPO = 'usetrmnl/trmnl-home-assistant'
 
 // File paths
 const PATHS = {
@@ -210,8 +211,7 @@ function updateChangelog(newVersion, previousVersion, entries) {
   const rest = content.slice(headerEnd)
 
   // Update comparison links at the bottom
-  const repoUrl = 'https://github.com/usetrmnl/trmnl-home-assistant'
-  const newLink = `[${newVersion}]: ${repoUrl}/compare/v${previousVersion}...v${newVersion}`
+  const newLink = `[${newVersion}]: https://github.com/${GITHUB_REPO}/compare/v${previousVersion}...v${newVersion}`
 
   // Find where links section starts (after ---)
   const linksStart = rest.lastIndexOf('\n[')
@@ -340,7 +340,7 @@ function release(bumpType, options = {}) {
 
     try {
       execSync(
-        `gh release create v${newVersion} --title "v${newVersion}" --notes "${releaseNotes.replace(
+        `gh release create v${newVersion} --title "v${newVersion}" -R ${GITHUB_REPO} --notes "${releaseNotes.replace(
           /"/g,
           '\\"'
         )}"`,
@@ -356,12 +356,14 @@ function release(bumpType, options = {}) {
         '⚠️  Failed to create GitHub release. Create manually with:'
       )
       console.log(
-        `   gh release create v${newVersion} --title "v${newVersion}"`
+        `   gh release create v${newVersion} --title "v${newVersion}" -R ${GITHUB_REPO}`
       )
     }
   } else {
     console.log(`\n💡 To push: git push && git push origin v${newVersion}`)
-    console.log(`💡 Then create release: gh release create v${newVersion}`)
+    console.log(
+      `💡 Then create release: gh release create v${newVersion} -R ${GITHUB_REPO}`
+    )
   }
 
   console.log(`\n🎉 Release ${newVersion} complete!\n`)
