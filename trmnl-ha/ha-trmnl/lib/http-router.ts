@@ -21,7 +21,7 @@ import {
   updateSchedule,
   deleteSchedule,
 } from './scheduleStore.js'
-import { loadDevicesConfig, loadPresets } from '../devices.js'
+import { loadPresets } from '../devices.js'
 import type { BrowserFacade } from './browserFacade.js'
 import type { ScheduleInput, ScheduleUpdate } from '../types/domain.js'
 import { toJson } from './json.js'
@@ -121,10 +121,6 @@ export class HttpRouter {
         return this.#handleScheduleSendAPI(request, response, requestUrl)
       }
       return this.#handleScheduleAPI(request, response, requestUrl)
-    }
-
-    if (pathname === '/api/devices') {
-      return this.#handleDevicesAPI(response)
     }
 
     if (pathname === '/api/presets') {
@@ -273,13 +269,6 @@ export class HttpRouter {
       response.end(toJson({ error: (err as Error).message }))
     }
 
-    return true
-  }
-
-  #handleDevicesAPI(response: ServerResponse): boolean {
-    const devices = loadDevicesConfig()
-    response.writeHead(200, { 'Content-Type': 'application/json' })
-    response.end(toJson(devices))
     return true
   }
 

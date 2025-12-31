@@ -108,25 +108,6 @@ export class DeleteSchedule {
 }
 
 /**
- * Loads device configurations
- */
-export class LoadDevices {
-  baseUrl: string
-
-  constructor(baseUrl = './api/devices') {
-    this.baseUrl = baseUrl
-  }
-
-  async call(): Promise<PresetsConfig> {
-    const response = await fetch(this.baseUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to load devices: ${response.statusText}`)
-    }
-    return response.json()
-  }
-}
-
-/**
  * Loads device presets
  */
 export class LoadPresets {

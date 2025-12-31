@@ -13,7 +13,11 @@
 
 import http from 'node:http'
 import type { IncomingMessage, ServerResponse, Server } from 'node:http'
-import { Browser, type NavigateParams, type ScreenshotCaptureParams } from './screenshot.js'
+import {
+  Browser,
+  type NavigateParams,
+  type ScreenshotCaptureParams,
+} from './screenshot.js'
 import {
   isAddOn,
   hassUrl,
@@ -150,7 +154,10 @@ class RequestHandler {
   /**
    * Handles browser crash/corruption errors with automatic recovery.
    */
-  async #handleBrowserError(err: Error, requestId: string | number): Promise<boolean> {
+  async #handleBrowserError(
+    err: Error,
+    requestId: string | number
+  ): Promise<boolean> {
     const isBrowserError =
       err instanceof BrowserCrashError ||
       err instanceof PageCorruptedError ||
@@ -185,7 +192,10 @@ class RequestHandler {
   /**
    * Main request handler - entry point for all HTTP requests.
    */
-  async handleRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  async handleRequest(
+    request: IncomingMessage,
+    response: ServerResponse
+  ): Promise<void> {
     const requestUrl = new URL(request.url || '/', 'http://localhost')
 
     const routed = await this.#router.route(request, response, requestUrl)
@@ -214,7 +224,11 @@ class RequestHandler {
 
       log.info`Screenshot request: ${params.pagePath} (${params.viewport.width}x${params.viewport.height})`
 
-      const navTime = await this.#navigateWithRecovery(params, requestId, response)
+      const navTime = await this.#navigateWithRecovery(
+        params,
+        requestId,
+        response
+      )
       if (navTime === null) return
 
       const image = await this.#captureWithRecovery(params, requestId, response)
@@ -258,7 +272,12 @@ class RequestHandler {
       this.#navigationTime = Math.max(this.#navigationTime, result.time)
       return result.time
     } catch (err) {
-      return this.#handleNavigationError(err as Error, params, requestId, response)
+      return this.#handleNavigationError(
+        err as Error,
+        params,
+        requestId,
+        response
+      )
     }
   }
 
@@ -336,7 +355,11 @@ class RequestHandler {
   }
 
   /** Sends image response with proper headers */
-  #sendImage(response: ServerResponse, image: Buffer, format: ImageFormat): void {
+  #sendImage(
+    response: ServerResponse,
+    image: Buffer,
+    format: ImageFormat
+  ): void {
     response.writeHead(200, {
       'Content-Type': this.#getContentType(format),
       'Content-Length': image.length,
@@ -356,7 +379,11 @@ class RequestHandler {
   /**
    * Schedules next request for preloading.
    */
-  #scheduleNextRequest(requestId: number, params: ScreenshotParams, start: Date): void {
+  #scheduleNextRequest(
+    requestId: number,
+    params: ScreenshotParams,
+    start: Date
+  ): void {
     const end = new Date()
     const requestTime = end.getTime() - start.getTime()
     const nextWaitTime =
@@ -380,7 +407,10 @@ class RequestHandler {
   /**
    * Prepares next request by preloading the page.
    */
-  async #prepareNextRequest(requestId: number, params: ScreenshotParams): Promise<void> {
+  async #prepareNextRequest(
+    requestId: number,
+    params: ScreenshotParams
+  ): Promise<void> {
     if (this.#busy) {
       log.debug`Busy, skipping next request`
       return
@@ -418,15 +448,22 @@ class RequestHandler {
     try {
       await this.#ensureBrowserHealthy()
       await this.#browser.navigatePage(params as NavigateParams)
-      const result = await this.#browser.screenshotPage(params as ScreenshotCaptureParams)
+      const result = await this.#browser.screenshotPage(
+        params as ScreenshotCaptureParams
+      )
       this.#facade.recordSuccess()
       await this.#maybeCleanupAfterRequests()
       return result.image
     } catch (err) {
-      const recovered = await this.#handleBrowserError(err as Error, '[Scheduler]')
+      const recovered = await this.#handleBrowserError(
+        err as Error,
+        '[Scheduler]'
+      )
       if (recovered) {
         await this.#browser.navigatePage(params as NavigateParams)
-        const result = await this.#browser.screenshotPage(params as ScreenshotCaptureParams)
+        const result = await this.#browser.screenshotPage(
+          params as ScreenshotCaptureParams
+        )
         this.#facade.recordSuccess()
         await this.#maybeCleanupAfterRequests()
         return result.image
@@ -495,71 +532,7 @@ function startMemoryMonitor(): void {
   }, 30000)
 }
 
-/**
- * Simple log rotation - checks every 5 minutes
- */
-async function startLogRotation(): Promise<void> {
-  const { existsSync, statSync, renameSync, readdirSync, unlinkSync } =
-    await import('node:fs')
-  const path = await import('node:path')
-
-  const LOG_DIR = './logs'
-  const MAX_SIZE = 10 * 1024 * 1024
-  const MAX_FILES = 3
-
-  async function rotateLogsIfNeeded(): Promise<void> {
-    if (!existsSync(LOG_DIR)) return
-
-    const logFiles = ['out.log', 'error.log']
-
-    for (const logFile of logFiles) {
-      const logPath = path.join(LOG_DIR, logFile)
-      if (!existsSync(logPath)) continue
-
-      const stats = statSync(logPath)
-      if (stats.size > MAX_SIZE) {
-        const timestamp = new Date()
-          .toISOString()
-          .replace(/[:.]/g, '-')
-          .slice(0, 19)
-        const rotatedPath = path.join(LOG_DIR, `${logFile}.${timestamp}`)
-
-        try {
-          renameSync(logPath, rotatedPath)
-          log.info`Log rotated: ${logFile} (${(stats.size / 1024 / 1024).toFixed(2)}MB)`
-
-          const allFiles = readdirSync(LOG_DIR)
-          const rotatedFiles = allFiles
-            .filter((f) => f.startsWith(logFile) && f !== logFile)
-            .map((f) => ({
-              name: f,
-              mtime: statSync(path.join(LOG_DIR, f)).mtime,
-            }))
-            .sort((a, b) => b.mtime.getTime() - a.mtime.getTime())
-
-          if (rotatedFiles.length > MAX_FILES) {
-            rotatedFiles.slice(MAX_FILES).forEach((f) => {
-              try {
-                unlinkSync(path.join(LOG_DIR, f.name))
-                log.debug`Deleted old log: ${f.name}`
-              } catch (err) {
-                log.error`Error deleting ${f.name}: ${(err as Error).message}`
-              }
-            })
-          }
-        } catch (err) {
-          log.error`Error rotating ${logFile}: ${(err as Error).message}`
-        }
-      }
-    }
-  }
-
-  setInterval(rotateLogsIfNeeded, 5 * 60 * 1000)
-  setTimeout(rotateLogsIfNeeded, 60000)
-}
-
 startMemoryMonitor()
-startLogRotation()
 
 // =============================================================================
 // CRASH RECOVERY & GRACEFUL SHUTDOWN
@@ -614,13 +587,16 @@ process.on('uncaughtException', async (err: Error) => {
   process.exit(1)
 })
 
-process.on('unhandledRejection', async (reason: unknown, _promise: Promise<unknown>) => {
-  log.error`Unhandled Rejection: ${reason}`
+process.on(
+  'unhandledRejection',
+  async (reason: unknown, _promise: Promise<unknown>) => {
+    log.error`Unhandled Rejection: ${reason}`
 
-  if (isBrowserRelatedError(reason)) {
-    log.error`Browser-related rejection, allowing container restart...`
-    process.exit(1)
+    if (isBrowserRelatedError(reason)) {
+      log.error`Browser-related rejection, allowing container restart...`
+      process.exit(1)
+    }
+
+    log.warn`Non-browser rejection logged, continuing...`
   }
-
-  log.warn`Non-browser rejection logged, continuing...`
-})
+)

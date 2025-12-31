@@ -15,7 +15,7 @@ import {
 } from 'home-assistant-js-websocket'
 import type { HassConfig, Connection } from 'home-assistant-js-websocket'
 import { hassUrl, hassToken, isAddOn } from './const.js'
-import { loadDevicesConfig } from './devices.js'
+import { loadPresets } from './devices.js'
 import type { PresetsConfig } from './types/domain.js'
 import { uiLogger } from './lib/logger.js'
 
@@ -94,7 +94,9 @@ function generateConfigInstructions(action: 'Configure' | 'Update'): string {
           <li>Go to Settings → Add-ons</li>
           <li>Click on the TRMNL HA add-on</li>
           <li>Go to the Configuration tab</li>
-          <li>${action === 'Configure' ? 'Paste' : 'Update'} your token in the "access_token" field</li>
+          <li>${
+            action === 'Configure' ? 'Paste' : 'Update'
+          } your token in the "access_token" field</li>
           <li>Save and restart the add-on</li>
         </ul>
       </li>`
@@ -102,10 +104,14 @@ function generateConfigInstructions(action: 'Configure' | 'Update'): string {
 
   return `
       <li>
-        <strong>${action === 'Configure' ? 'Add to' : 'Update'} Configuration File:</strong>
+        <strong>${
+          action === 'Configure' ? 'Add to' : 'Update'
+        } Configuration File:</strong>
         <ul class="ml-6 mt-2 space-y-1 list-disc list-inside text-sm">
           <li>Open the file: <code class="bg-gray-100 px-2 py-1 rounded">${CONFIG_FILE}</code></li>
-          <li>${action === 'Configure' ? 'Add or update' : 'Update'} the <code class="bg-gray-100 px-2 py-1 rounded">access_token</code> field with your token</li>
+          <li>${
+            action === 'Configure' ? 'Add or update' : 'Update'
+          } the <code class="bg-gray-100 px-2 py-1 rounded">access_token</code> field with your token</li>
           <li>Save the file and restart the service</li>
         </ul>
       </li>`
@@ -121,7 +127,9 @@ function generateConfigInstructions(action: 'Configure' | 'Update'): string {
 async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
   try {
     log.debug`Connecting to HA at: ${hassUrl}`
-    log.debug`Token configured: ${hassToken ? 'yes (' + hassToken.substring(0, 10) + '...)' : 'NO'}`
+    log.debug`Token configured: ${
+      hassToken ? 'yes (' + hassToken.substring(0, 10) + '...)' : 'NO'
+    }`
 
     const auth = createLongLivedTokenAuth(hassUrl, hassToken!)
     const connection: Connection = await createConnection({ auth })
@@ -132,7 +140,9 @@ async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
       }),
       connection.sendMessagePromise<NetworkResult>({ type: 'network/url' }),
       connection
-        .sendMessagePromise<DashboardInfo[]>({ type: 'lovelace/dashboards/list' })
+        .sendMessagePromise<DashboardInfo[]>({
+          type: 'lovelace/dashboards/list',
+        })
         .catch(() => null),
     ])
 
@@ -172,7 +182,9 @@ async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
         dashboards = [...new Set(dashboards)]
       }
     } catch (err) {
-      log.warn`Could not parse dashboards, using defaults: ${(err as Error).message}`
+      log.warn`Could not parse dashboards, using defaults: ${
+        (err as Error).message
+      }`
     }
 
     return { themes: themesResult, network: networkResult, config, dashboards }
@@ -248,13 +260,18 @@ export async function handleUIRequest(response: ServerResponse): Promise<void> {
     const htmlPath = join(HTML_DIR, 'index.html')
     let html = await readFile(htmlPath, 'utf-8')
 
-    const presets = loadDevicesConfig()
-    const hassDataWithDevices: HomeAssistantData & { presets: PresetsConfig } = {
-      ...hassData,
-      presets,
-    }
+    const presets = loadPresets()
+    const hassDataWithDevices: HomeAssistantData & { presets: PresetsConfig } =
+      {
+        ...hassData,
+        presets,
+      }
 
-    const scriptTag = `<script>window.hass = ${JSON.stringify(hassDataWithDevices, null, 2)};</script>`
+    const scriptTag = `<script>window.hass = ${JSON.stringify(
+      hassDataWithDevices,
+      null,
+      2
+    )};</script>`
     html = html.replace('</head>', `${scriptTag}\n  </head>`)
 
     sendHtmlResponse(response, html)

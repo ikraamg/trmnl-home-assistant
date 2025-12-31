@@ -10,14 +10,7 @@ import presets from './devices.json' with { type: 'json' }
 import type { PresetsConfig } from './types/domain.js'
 
 /**
- * Get device configurations (returns presets)
- */
-export function loadDevicesConfig(): PresetsConfig {
-  return presets as PresetsConfig
-}
-
-/**
- * Get schedule presets
+ * Load device presets from devices.json
  */
 export function loadPresets(): PresetsConfig {
   return presets as PresetsConfig
