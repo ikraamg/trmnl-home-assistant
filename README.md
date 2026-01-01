@@ -1,3 +1,5 @@
+[![AI Coauthored](https://img.shields.io/badge/AI_Coauthored-↗_see_details-58a6ff?style=flat)](https://coauthored.dev/#v:1;o:~Y29hdXRob3JlZC5kZXY;created:2026-01-01;scope:project;intent:spike,prod;traj:stable;ai:code,debug,refactor,test,doc,arch;tools:~Q2xhdWRlIENvZGU;review:spot,ran,aitests,iter;strengths:backend,domain;confident:security,perf;limits:bugs,debt;env:external;data:medium;valid:unit,integ,e2e,perf;focus:arch,security,edge;notes:~SW4gZ2VuZXJhbCB0aGlzIGlzIGEgd29ya2luZyBidXQgdW5yZWZpbmVkIGNvZGViYXNlLiBUaGVyZSBpcyBjb25maWRlbmNlIGluIHRoZSBnZW5lcmFsIGFwcHJvYWNoLCBzZWN1cml0eSwgaW50ZWdyYXRpb24gd2l0aCBIb21lIEFzc2lzdGFudCBldGMuIEhvd2V2ZXIgdGhlcmUgaXMgdGVjaG5pY2FsIGRlYnQgaW4gdGVybXMgb2YgY29tbWl0IGhpc3RvcnksIGFyY2hpdGVjdHVyZSBwYXR0ZXJucywgYW5kIGluIGEgbGluZS1ieS1saW5lIGNvZGUgcmV2aWV3IG9mIHRoZSBpbnRlcm5hbHMu)
+
 # TRMNL HA
 
 ![TRMNL Logo](trmnl-ha/logo.png)
