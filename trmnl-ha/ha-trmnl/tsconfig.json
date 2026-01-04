@@ -42,6 +42,7 @@
   "include": [
     "*.ts",
     "lib/**/*.ts",
+    "html/shared/**/*.ts",
     "tests/**/*.ts",
     "types/**/*.ts"
   ],

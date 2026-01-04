@@ -171,6 +171,8 @@ export class ScreenshotParamsParser {
 
     const gammaCorrection = !url.searchParams.has('no_gamma')
 
+    const levelsEnabled = url.searchParams.has('levels_enabled')
+
     let blackLevel = parseInt(url.searchParams.get('black_level') || '')
     if (isNaN(blackLevel) || blackLevel < 0 || blackLevel > 100) blackLevel = 0
 
@@ -201,6 +203,7 @@ export class ScreenshotParamsParser {
         method,
         palette,
         gammaCorrection,
+        levelsEnabled,
         blackLevel,
         whiteLevel,
         normalize,

@@ -335,23 +335,19 @@ export class RenderScheduleContent {
           <!-- HA-specific theme settings (hidden when HA mode is off) -->
           <div id="haThemeSection" class="${haOptionsHidden}">
             ${this.#renderThemeSettings()}
-            ${this.#renderAppearanceToggles()}
+            ${this.#renderDarkModeToggle()}
           </div>
 
-          <!-- Invert toggle (always visible, useful for any display) -->
-          <div id="genericAppearanceSection" class="${genericOptionsHidden}">
-            <div class="flex items-center">
-              <label class="flex items-center" title="Swap black and white after capture (useful for negative displays)">
-                <input type="checkbox" id="s_invert_generic" ${
-                  s.invert ? 'checked' : ''
-                }
-                  class="h-4 w-4 border-gray-300 rounded"
-                  onchange="window.app.updateField('invert', this.checked)" />
-                <span class="ml-2 text-sm text-gray-700">Invert Colors</span>
-              </label>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">Flips black↔white (for inverted e-ink displays)</p>
+          <!-- Invert toggle (always visible, works for any display) -->
+          <div class="flex items-center">
+            <label class="flex items-center" title="Swap black and white after capture (useful for negative displays)">
+              <input type="checkbox" id="s_invert" ${s.invert ? 'checked' : ''}
+                class="h-4 w-4 border-gray-300 rounded"
+                onchange="window.app.updateScheduleFromForm()" />
+              <span class="ml-2 text-sm text-gray-700">Invert Colors</span>
+            </label>
           </div>
+          <p class="text-xs text-gray-500 mt-1">Flips black↔white (for inverted e-ink displays)</p>
         </div>
       </div>
     `
@@ -407,7 +403,7 @@ export class RenderScheduleContent {
               title="Crop height (pixels)" />
           </div>
         </div>
-        <p class="text-xs text-gray-500 mt-1">Use "Crop & Zoom" button to visually adjust crop region</p>
+        <p class="text-xs text-gray-500 mt-1">Use "Crop" button to visually adjust crop region</p>
         <div class="mt-2 px-3 py-2 rounded-md" style="background-color: #fef3c7; border: 1px solid #fbbf24">
           <p class="text-xs" style="color: #92400e">
             <strong>Note:</strong> When crop is enabled, the final image size will be the crop dimensions (Width × Height), not the viewport size.
@@ -515,25 +511,19 @@ export class RenderScheduleContent {
     `
   }
 
-  #renderAppearanceToggles(): string {
+  #renderDarkModeToggle(): string {
     const s = this.schedule
 
     return `
-      <div class="flex items-center gap-4">
+      <div class="flex items-center">
         <label class="flex items-center" title="Force dark mode in Home Assistant">
           <input type="checkbox" id="s_dark" ${s.dark ? 'checked' : ''}
             class="h-4 w-4 border-gray-300 rounded"
             onchange="window.app.updateScheduleFromForm()" />
           <span class="ml-2 text-sm text-gray-700">Dark Mode</span>
         </label>
-        <label class="flex items-center" title="Swap black and white after capture (useful for negative displays)">
-          <input type="checkbox" id="s_invert" ${s.invert ? 'checked' : ''}
-            class="h-4 w-4 border-gray-300 rounded"
-            onchange="window.app.updateScheduleFromForm()" />
-          <span class="ml-2 text-sm text-gray-700">Invert Colors</span>
-        </label>
       </div>
-      <p class="text-xs text-gray-500 mt-1">Dark Mode: Forces dark theme | Invert: Flips black↔white (for inverted e-ink displays)</p>
+      <p class="text-xs text-gray-500 mt-1">Forces dark theme in Home Assistant</p>
     `
   }
 
@@ -549,12 +539,15 @@ export class RenderScheduleContent {
               s.dithering?.enabled ? 'checked' : ''
             }
               class="h-4 w-4 border-gray-300 rounded"
-              onchange="window.app.updateScheduleFromForm()"
+              onchange="document.getElementById('ditheringControls').classList.toggle('hidden', !this.checked); window.app.updateScheduleFromForm()"
               title="Convert images to limited color palettes for e-ink displays" />
-            <label for="s_dithering" class="ml-2 text-sm text-gray-700">Enable Advanced Dithering</label>
+            <label for="s_dithering" class="ml-2 text-sm text-gray-700">Enable Dithering</label>
           </div>
           <p class="text-xs text-gray-500 mt-1">Optimizes images for e-ink displays by reducing colors and applying error diffusion</p>
 
+          <div id="ditheringControls" class="${
+            s.dithering?.enabled ? '' : 'hidden'
+          } space-y-3">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Method</label>
             <select id="s_method" class="w-full px-3 py-2 border rounded-md" style="border-color: var(--primary-light)"
@@ -611,32 +604,47 @@ export class RenderScheduleContent {
           </div>
           <p class="text-xs text-gray-500 mt-1">✓ Recommended: Removes gamma curves so e-ink displays show proper brightness</p>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Black Level: <span id="black_val">${
-              s.dithering?.blackLevel ?? 0
-            }</span>%</label>
-            <input type="range" id="s_black" min="0" max="50" value="${
-              s.dithering?.blackLevel ?? 0
-            }"
-              class="w-full"
-              oninput="document.getElementById('black_val').textContent=this.value"
-              onchange="window.app.updateScheduleFromForm()"
-              title="Crush darker pixels to pure black for higher contrast" />
-            <p class="text-xs text-gray-500 mt-1">Raises shadow detail threshold - pixels darker than this become pure black</p>
+          <div class="flex items-center">
+            <input type="checkbox" id="s_levels_enabled" ${
+              s.dithering?.levelsEnabled ? 'checked' : ''
+            }
+              class="h-4 w-4 border-gray-300 rounded"
+              onchange="document.getElementById('levelsControls').classList.toggle('hidden', !this.checked); window.app.updateScheduleFromForm()"
+              title="Enable manual black/white level adjustments" />
+            <label for="s_levels_enabled" class="ml-2 text-sm text-gray-700">Manual Levels</label>
           </div>
+          <p class="text-xs text-gray-500 mt-1">Enable to manually adjust contrast. Disabled = preserve original image contrast.</p>
 
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">White Level: <span id="white_val">${
-              s.dithering?.whiteLevel ?? 100
-            }</span>%</label>
-            <input type="range" id="s_white" min="50" max="100" value="${
-              s.dithering?.whiteLevel ?? 100
-            }"
-              class="w-full"
-              oninput="document.getElementById('white_val').textContent=this.value"
-              onchange="window.app.updateScheduleFromForm()"
-              title="Crush lighter pixels to pure white for cleaner highlights" />
-            <p class="text-xs text-gray-500 mt-1">Lowers highlight detail threshold - pixels brighter than this become pure white</p>
+          <div id="levelsControls" class="${
+            s.dithering?.levelsEnabled ? '' : 'hidden'
+          } space-y-4 pl-4 border-l-2 border-gray-200">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Black Level: <span id="black_val">${
+                s.dithering?.blackLevel ?? 0
+              }</span>%</label>
+              <input type="range" id="s_black" min="0" max="50" value="${
+                s.dithering?.blackLevel ?? 0
+              }"
+                class="w-full"
+                oninput="document.getElementById('black_val').textContent=this.value"
+                onchange="window.app.updateScheduleFromForm()"
+                title="Crush darker pixels to pure black for higher contrast" />
+              <p class="text-xs text-gray-500 mt-1">Pixels darker than this become pure black</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">White Level: <span id="white_val">${
+                s.dithering?.whiteLevel ?? 100
+              }</span>%</label>
+              <input type="range" id="s_white" min="50" max="100" value="${
+                s.dithering?.whiteLevel ?? 100
+              }"
+                class="w-full"
+                oninput="document.getElementById('white_val').textContent=this.value"
+                onchange="window.app.updateScheduleFromForm()"
+                title="Crush lighter pixels to pure white for cleaner highlights" />
+              <p class="text-xs text-gray-500 mt-1">Pixels brighter than this become pure white</p>
+            </div>
           </div>
 
           <div class="flex items-center gap-4">
@@ -684,6 +692,7 @@ export class RenderScheduleContent {
             </select>
             <p class="text-xs text-gray-500 mt-1">Higher = smaller files but slower. Default 9 (max). Try 6-7 if processing is slow.</p>
           </div>
+          </div>
         </div>
       </div>
     `
@@ -705,8 +714,8 @@ export class RenderScheduleContent {
           <button onclick="window.app.openCropModal()"
             class="px-4 py-2 border-2 rounded-md transition hover:bg-gray-50"
             style="border-color: var(--primary); color: var(--primary)"
-            title="Interactive crop and zoom preview">
-            Crop & Zoom
+            title="Interactive crop region selection">
+            Crop
           </button>
           <button onclick="window.app.loadPreview()"
             class="px-4 py-2 text-white rounded-md transition"

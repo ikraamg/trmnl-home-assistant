@@ -96,6 +96,11 @@ class App {
 
   async init(): Promise<void> {
     try {
+      // Remove ?refresh=1 from URL to prevent repeated forced refreshes
+      if (window.location.search.includes('refresh=1')) {
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+
       // Show HA status banner if not connected
       this.#updateHAStatusBanner()
 
@@ -118,19 +123,60 @@ class App {
 
   /**
    * Shows/hides the HA status banner based on connection status.
+   * Populates with diagnostic info: URL, token preview, status reason.
    */
   #updateHAStatusBanner(): void {
     const banner = document.getElementById('haStatusBanner')
-    if (!banner) return
+    const content = document.getElementById('haStatusContent')
+    if (!banner || !content) return
 
     // @ts-expect-error window.uiConfig is injected by server
-    const uiConfig = window.uiConfig || { haConnected: false }
-
-    if (uiConfig.haConnected) {
-      banner.classList.add('hidden')
-    } else {
-      banner.classList.remove('hidden')
+    const uiConfig = window.uiConfig || {
+      haConnected: false,
+      hassUrl: '',
+      tokenPreview: null,
+      connectionStatus: 'Unknown',
+      cachedAt: null,
     }
+
+    // Log connection status to browser console for debugging
+    const logPrefix = '[HA Connection]'
+    if (uiConfig.haConnected) {
+      console.log(
+        `${logPrefix} Connected | URL: ${uiConfig.hassUrl} | Token: ${uiConfig.tokenPreview}`
+      )
+      banner.classList.add('hidden')
+      return
+    }
+    console.warn(
+      `${logPrefix} ${uiConfig.connectionStatus} | URL: ${
+        uiConfig.hassUrl
+      } | Token: ${uiConfig.tokenPreview ?? 'not set'}`
+    )
+
+    // Build diagnostic info
+    const tokenInfo = uiConfig.tokenPreview
+      ? `<code class="bg-amber-100 px-1 rounded">${uiConfig.tokenPreview}</code>`
+      : '<span class="text-red-600 font-medium">not set</span>'
+
+    // Refresh link (only show if we have cached data)
+    const refreshLink = uiConfig.cachedAt
+      ? `<br><a href="?refresh=1" class="text-amber-600 underline hover:text-amber-800">↻ Refresh HA status</a>`
+      : ''
+
+    content.innerHTML = `
+      <p class="text-sm font-medium text-amber-800">Home Assistant not connected</p>
+      <p class="text-xs text-amber-700 mt-1">
+        <strong>Status:</strong> ${uiConfig.connectionStatus}<br>
+        <strong>URL:</strong> <code class="bg-amber-100 px-1 rounded">${uiConfig.hassUrl}</code><br>
+        <strong>Token:</strong> ${tokenInfo}${refreshLink}
+      </p>
+      <p class="text-xs text-amber-600 mt-2">
+        HA features (themes, dashboards, dark mode) are unavailable.
+        Use <strong>Generic Mode</strong> to capture any URL, or configure your HA token.
+      </p>
+    `
+    banner.classList.remove('hidden')
   }
 
   // =============================================================================
@@ -327,6 +373,7 @@ class App {
         gammaCorrection:
           (document.getElementById('s_gamma') as HTMLInputElement | null)
             ?.checked ?? true,
+        levelsEnabled: checkbox('s_levels_enabled'),
         blackLevel: parseIntOrDefault(input('s_black'), 0),
         whiteLevel: parseIntOrDefault(input('s_white'), 100),
         normalize: checkbox('s_normalize'),
@@ -466,13 +513,6 @@ class App {
   }
 
   resetCrop(): void {
-    const schedule = this.#scheduleManager.activeSchedule
-    if (schedule) {
-      this.#cropModal.reset(schedule)
-    }
-  }
-
-  fitToDevice(): void {
     const schedule = this.#scheduleManager.activeSchedule
     if (schedule) {
       this.#cropModal.reset(schedule)

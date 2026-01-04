@@ -27,13 +27,10 @@ import {
 import { processImage } from './lib/dithering.js'
 import {
   NavigateToPage,
-  WaitForPageLoad,
   WaitForPageStable,
-  DismissToastsAndSetZoom,
-  UpdateLanguage,
-  UpdateTheme,
   type AuthStorage,
 } from './lib/browser/navigation-commands.js'
+import { getPageSetupStrategy } from './lib/browser/page-setup-strategies.js'
 import type {
   ScreenshotResult,
   CropRegion,
@@ -403,37 +400,25 @@ export class Browser {
         this.#lastRequestedPath = effectivePath
       }
 
-      const waitLoadCmd = new WaitForPageLoad(page)
-      await waitLoadCmd.call()
+      // Apply page setup strategy (HA vs Generic have different requirements)
+      const isGenericUrl = !!targetUrl
+      const setupStrategy = getPageSetupStrategy(isGenericUrl)
+      const setupResult = await setupStrategy.setup(page, {
+        zoom,
+        theme,
+        lang,
+        dark,
+        isFirstNavigation,
+        lastTheme: this.#lastRequestedTheme,
+        lastLang: this.#lastRequestedLang,
+        lastDarkMode: this.#lastRequestedDarkMode,
+      })
 
-      if (!isFirstNavigation) {
-        const dismissCmd = new DismissToastsAndSetZoom(page)
-        const dismissedToast = await dismissCmd.call(zoom)
-        if (dismissedToast) waitTime += 1000
-      } else {
-        await page.evaluate((zoomLevel: number) => {
-          document.body.style.zoom = String(zoomLevel)
-        }, zoom)
-      }
-
-      // Update language if changed
-      if (lang !== this.#lastRequestedLang) {
-        const langCmd = new UpdateLanguage(page)
-        await langCmd.call(lang || '')
-        this.#lastRequestedLang = lang
-        waitTime += 1000
-      }
-
-      // Update theme if changed
-      if (
-        theme !== this.#lastRequestedTheme ||
-        dark !== this.#lastRequestedDarkMode
-      ) {
-        const themeCmd = new UpdateTheme(page)
-        await themeCmd.call(theme || '', dark || false)
+      waitTime += setupResult.waitTime
+      if (setupResult.langChanged) this.#lastRequestedLang = lang
+      if (setupResult.themeChanged) {
         this.#lastRequestedTheme = theme
         this.#lastRequestedDarkMode = dark
-        waitTime += 500
       }
 
       // Apply smart wait strategy

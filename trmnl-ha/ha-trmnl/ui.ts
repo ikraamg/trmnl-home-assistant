@@ -68,7 +68,23 @@ interface UIConfig {
   hassUrl: string
   /** Whether HA connection succeeded (themes/dashboards available) */
   haConnected: boolean
+  /** First 4 chars of token masked (e.g., "eyJ1****") for debugging */
+  tokenPreview: string | null
+  /** Human-readable connection status reason */
+  connectionStatus: string
+  /** Timestamp when HA data was last fetched (for cache age display) */
+  cachedAt: number | null
 }
+
+// =============================================================================
+// HA DATA CACHE
+// =============================================================================
+
+/** Cached HA data to avoid blocking every UI request */
+let cachedHassData: HomeAssistantData | null = null
+
+/** Timestamp when cache was last populated */
+let cacheTimestamp: number = 0
 
 // =============================================================================
 // HELPER FUNCTIONS
@@ -192,6 +208,28 @@ async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
   }
 }
 
+/**
+ * Gets HA data from cache or fetches fresh data.
+ * Cache is used unless forceRefresh is true.
+ */
+async function getCachedOrFetch(forceRefresh: boolean): Promise<{
+  data: HomeAssistantData
+  cachedAt: number
+}> {
+  // Return cached data if available and not forcing refresh
+  if (cachedHassData && !forceRefresh) {
+    log.debug`Using cached HA data (age: ${Math.round((Date.now() - cacheTimestamp) / 1000)}s)`
+    return { data: cachedHassData, cachedAt: cacheTimestamp }
+  }
+
+  // Fetch fresh data
+  log.info`Fetching fresh HA data${forceRefresh ? ' (forced refresh)' : ''}`
+  const data = await fetchHomeAssistantData()
+  cachedHassData = data
+  cacheTimestamp = Date.now()
+  return { data, cachedAt: cacheTimestamp }
+}
+
 // =============================================================================
 // MAIN UI HANDLER
 // =============================================================================
@@ -201,29 +239,71 @@ async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
  *
  * Always serves the main UI - no blocking error pages.
  * Connection status is passed to frontend for inline messaging.
+ * HA data is cached to avoid blocking on every request.
+ *
+ * @param response - HTTP response object
+ * @param requestUrl - Request URL to check for ?refresh=1 query param
  */
-export async function handleUIRequest(response: ServerResponse): Promise<void> {
+export async function handleUIRequest(
+  response: ServerResponse,
+  requestUrl?: URL
+): Promise<void> {
   try {
-    // Attempt HA connection if token is configured
+    // Check for forced refresh via query param
+    const forceRefresh = requestUrl?.searchParams.get('refresh') === '1'
+
+    // Attempt HA connection if token is configured (using cache)
     let hassData: HomeAssistantData = {
       themes: null,
       network: null,
       config: null,
       dashboards: null,
     }
+    let cachedAt: number | null = null
 
     if (hassToken) {
-      hassData = await fetchHomeAssistantData()
+      const result = await getCachedOrFetch(forceRefresh)
+      hassData = result.data
+      cachedAt = result.cachedAt
     }
 
     // Determine if HA connection succeeded
     const haConnected = !!(hassData.themes && hassData.config)
+
+    // Build token preview (first 4 chars masked)
+    const tokenPreview = hassToken
+      ? `${hassToken.slice(0, 4)}****`
+      : null
+
+    // Determine connection status reason
+    let connectionStatus: string
+    if (haConnected) {
+      connectionStatus = 'Connected'
+    } else if (!hassToken) {
+      connectionStatus = 'No token configured'
+    } else if (!hassData.themes && !hassData.config) {
+      connectionStatus = 'Connection failed - could not reach HA'
+    } else if (!hassData.themes) {
+      connectionStatus = 'Connected but themes unavailable'
+    } else {
+      connectionStatus = 'Connected but config unavailable'
+    }
+
+    // Log connection status for debugging
+    if (haConnected) {
+      log.info`HA connection: ${connectionStatus} | URL: ${hassUrl} | Token: ${tokenPreview}`
+    } else {
+      log.warning`HA connection: ${connectionStatus} | URL: ${hassUrl} | Token: ${tokenPreview ?? 'not set'}`
+    }
 
     // Build UI config for frontend
     const uiConfig: UIConfig = {
       hasToken: !!hassToken,
       hassUrl,
       haConnected,
+      tokenPreview,
+      connectionStatus,
+      cachedAt,
     }
 
     const htmlPath = join(HTML_DIR, 'index.html')

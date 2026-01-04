@@ -109,7 +109,7 @@ export class HttpRouter {
 
     // Serve UI at root UNLESS there's a 'url' param (generic screenshot mode)
     if (pathname === '/' && !requestUrl.searchParams.has('url')) {
-      await handleUIRequest(response)
+      await handleUIRequest(response, requestUrl)
       return true
     }
 

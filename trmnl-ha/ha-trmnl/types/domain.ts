@@ -59,6 +59,8 @@ export interface DitheringConfig {
   method: DitheringMethod
   palette: Palette
   gammaCorrection: boolean
+  /** Enable manual black/white level adjustments (default: false) */
+  levelsEnabled?: boolean
   blackLevel: number
   whiteLevel: number
   normalize: boolean

@@ -86,6 +86,8 @@ export interface DitheringOptions {
   method?: DitheringMethodWithAlias
   palette?: Palette
   gammaCorrection?: boolean
+  /** Enable manual black/white level adjustments */
+  levelsEnabled?: boolean
   blackLevel?: number
   whiteLevel?: number
   normalize?: boolean
@@ -356,6 +358,7 @@ export async function applyDithering(
     method = 'floyd-steinberg',
     palette = 'gray-4',
     gammaCorrection = true,
+    levelsEnabled = false,
     blackLevel = 0,
     whiteLevel = 100,
     normalize = false,
@@ -401,8 +404,10 @@ export async function applyDithering(
     const result = applyGrayscaleDithering(image, {
       method,
       colors,
+      levelsEnabled,
       blackLevel,
       whiteLevel,
+      normalize,
     })
     image = result.image
     // Use override if provided, otherwise use calculated from palette
@@ -493,8 +498,10 @@ export async function applyDithering(
 interface GrayscaleDitheringOptions {
   method: string
   colors: number
+  levelsEnabled: boolean
   blackLevel: number
   whiteLevel: number
+  normalize: boolean
 }
 
 /**
@@ -520,14 +527,20 @@ function applyGrayscaleDithering(
   image: State,
   options: GrayscaleDitheringOptions
 ): GrayscaleDitheringResult {
-  const { method, colors, blackLevel, whiteLevel } = options
+  const { method, colors, levelsEnabled, blackLevel, whiteLevel, normalize } =
+    options
   const bitDepth = getBitDepth(colors)
 
   // Convert to grayscale
   image = image.colorspace('Gray')
 
-  // Apply level adjustments for contrast
-  if (blackLevel > 0 || whiteLevel < 100) {
+  // Normalize stretches histogram to use full range (auto-contrast)
+  if (normalize) {
+    image = image.normalize()
+  }
+
+  // Apply level adjustments for contrast (only when enabled and values differ from defaults)
+  if (levelsEnabled && (blackLevel > 0 || whiteLevel < 100)) {
     const blackPoint = `${blackLevel}%`
     const whitePoint = `${whiteLevel}%`
     // NOTE: gm .level() accepts strings but @types/gm is incomplete

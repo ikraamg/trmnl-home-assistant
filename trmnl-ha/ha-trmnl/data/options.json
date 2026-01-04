@@ -1,9 +1,0 @@
-{
-  "_readme": "See DOCS.md#standalone-mode for setup instructions",
-
-  "home_assistant_url": "https://your-website.com",
-  "access_token": "",
-
-  "keep_browser_open": true,
-  "chromium_executable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-}

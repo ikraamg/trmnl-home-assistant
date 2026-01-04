@@ -46,18 +46,14 @@
 
   <body class="p-4">
     <div class="container mx-auto max-w-7xl">
-      <!-- HA Connection Status Banner (shown when HA not connected) -->
+      <!-- HA Connection Status Banner (shown when HA not connected, populated by app.ts) -->
       <div id="haStatusBanner" class="hidden mb-4 px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
         <div class="flex items-start gap-3">
           <svg class="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <div>
-            <p class="text-sm font-medium text-amber-800">Home Assistant not connected</p>
-            <p class="text-xs text-amber-700 mt-1">
-              HA features (themes, dashboards, dark mode) are unavailable.
-              Use <strong>Generic Mode</strong> to capture any URL, or configure your HA token to enable HA mode.
-            </p>
+          <div id="haStatusContent">
+            <!-- Content populated dynamically by app.ts -->
           </div>
         </div>
       </div>
@@ -98,7 +94,7 @@
       </div>
     </div>
 
-    <!-- Crop & Zoom Modal -->
+    <!-- Crop Modal -->
     <div id="cropModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div class="bg-white rounded-lg shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-auto">
         <!-- Modal Header -->
@@ -163,11 +159,6 @@
                       class="px-4 py-2 bg-white border-2 rounded-md transition hover:bg-gray-100"
                       style="border-color: var(--primary); color: var(--primary)">
                 Reset Crop
-              </button>
-              <button onclick="window.app.fitToDevice()"
-                      class="px-4 py-2 bg-white border-2 rounded-md transition hover:bg-gray-100"
-                      style="border-color: var(--primary); color: var(--primary)">
-                Fit to Device Aspect Ratio
               </button>
             </div>
           </div>

@@ -128,17 +128,15 @@ export class NavigateToPage {
     pagePath: string,
     targetUrl?: string
   ): Promise<NavigationResult> {
-    // For generic URLs or mock HA, always use page.goto()
-    // For real HA, use client-side navigation
     const isGenericUrl = !!targetUrl
-    const isMockHA = this.#page.url().includes('localhost:8123')
+    const isCurrentlyOnHA = this.#page.url().startsWith(this.#homeAssistantUrl)
 
-    if (isGenericUrl || isMockHA) {
+    // Use page.goto() for generic URLs or when not currently on HA
+    // Use client-side navigation only when already on HA (faster, preserves state)
+    if (isGenericUrl || !isCurrentlyOnHA) {
       const pageUrl =
         targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
-      log.info`Navigating to: ${pageUrl} (mode: ${
-        isGenericUrl ? 'generic' : 'mock-HA'
-      })`
+      log.info`Navigating to: ${pageUrl} (mode: ${isGenericUrl ? 'generic' : 'full-reload'})`
 
       let response
       try {
@@ -205,7 +203,7 @@ export class WaitForPageLoad {
 
           return !('_loading' in panel) || !panel._loading
         },
-        { timeout: 10000, polling: 100 }
+        { timeout: 3000, polling: 100 }
       )
     } catch (_err) {
       log.debug`Timeout waiting for HA to finish loading`

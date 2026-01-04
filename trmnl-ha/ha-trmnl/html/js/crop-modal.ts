@@ -18,6 +18,8 @@
 
 import { FetchPreview } from './api-client.js'
 import { ConfirmModal } from './confirm-modal.js'
+import { resolveScreenshotTarget } from '../shared/screenshot-target.js'
+import { buildScreenshotParams } from '../shared/build-screenshot-params.js'
 import type { Schedule, CropRegion } from '../../types/domain.js'
 
 /** Interact.js event types */
@@ -120,8 +122,16 @@ export class CropModal {
     this.#showModal(true)
 
     try {
-      const params = this.#buildUrlParams(schedule)
-      const blob = await this.#fetchPreviewCmd.call(schedule.dashboard_path, params)
+      // Use shared param builder (exclude crop - we show uncropped for selection)
+      const params = buildScreenshotParams(schedule, { includeCrop: false })
+      const target = resolveScreenshotTarget(schedule)
+
+      // Add full URL param for generic mode
+      if (target.fullUrl) {
+        params.append('url', target.fullUrl)
+      }
+
+      const blob = await this.#fetchPreviewCmd.call(target.path, params)
       const imageUrl = URL.createObjectURL(blob)
 
       await this.#loadImage(imageUrl, schedule)
@@ -205,61 +215,6 @@ export class CropModal {
       img?.classList.add('hidden')
       overlay?.classList.add('hidden')
     }
-  }
-
-  #buildUrlParams(schedule: Schedule): URLSearchParams {
-    const params = new URLSearchParams()
-    params.append('viewport', `${schedule.viewport.width}x${schedule.viewport.height}`)
-
-    if (schedule.format && schedule.format !== 'png') {
-      params.append('format', schedule.format)
-    }
-    if (schedule.rotate) {
-      params.append('rotate', String(schedule.rotate))
-    }
-    if (schedule.zoom && schedule.zoom !== 1) {
-      params.append('zoom', String(schedule.zoom))
-    }
-    if (schedule.wait) {
-      params.append('wait', String(schedule.wait))
-    }
-    if (schedule.theme) {
-      params.append('theme', schedule.theme)
-    }
-    if (schedule.lang) {
-      params.append('lang', schedule.lang)
-    }
-    if (schedule.dark) {
-      params.append('dark', '')
-    }
-    if (schedule.invert) {
-      params.append('invert', '')
-    }
-
-    if (schedule.dithering?.enabled) {
-      params.append('dithering', '')
-      if (schedule.dithering.method) {
-        params.append('dither_method', schedule.dithering.method)
-      }
-      params.append('palette', schedule.dithering.palette || 'gray-4')
-      if (schedule.dithering.gammaCorrection !== undefined && !schedule.dithering.gammaCorrection) {
-        params.append('no_gamma', '')
-      }
-      if (schedule.dithering.blackLevel !== undefined) {
-        params.append('black_level', String(schedule.dithering.blackLevel))
-      }
-      if (schedule.dithering.whiteLevel !== undefined) {
-        params.append('white_level', String(schedule.dithering.whiteLevel))
-      }
-      if (schedule.dithering.normalize) {
-        params.append('normalize', '')
-      }
-      if (schedule.dithering.saturationBoost) {
-        params.append('saturation_boost', '')
-      }
-    }
-
-    return params
   }
 
   async #loadImage(imageUrl: string, schedule: Schedule): Promise<void> {
