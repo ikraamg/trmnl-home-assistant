@@ -39,12 +39,22 @@ Edit `options-dev.json`:
 > The `access_token` field is only needed for Home Assistant authentication - omit it for other sites.
 
 ```bash
-# 2. Build and run
+# 2. Build and run (choose one)
+
+# Development mode (hot-reload, logs to terminal)
 ./ha-trmnl/scripts/docker-dev.sh
 
+# Production mode (runs in background like HA add-on)
+./ha-trmnl/scripts/docker-build.sh && ./ha-trmnl/scripts/docker-run.sh
+```
+
+```bash
 # 3. Capture screenshots
 curl "http://localhost:10000/path/to/page?viewport=800x480"
 curl "http://localhost:10000/?viewport=800x480&dithering&dither_method=floyd-steinberg"
+
+# Or use the Web UI
+open http://localhost:10000/
 ```
 
 ### Quick Start (Bun)
@@ -112,6 +122,17 @@ The UI provides:
 - Schedule management (create/edit/delete cron schedules)
 - Device preset picker (TRMNL OG, etc.)
 - Manual "Send Now" trigger
+
+### Home Assistant Mode Toggle
+
+When Home Assistant is connected, a **Home Assistant Mode** toggle appears in the Screenshot settings:
+
+| Mode | Description |
+|------|-------------|
+| **HA Mode ON** | Captures Home Assistant dashboards with theme, language, and dark mode support |
+| **HA Mode OFF** | Captures any URL (generic mode, no HA-specific features) |
+
+This allows you to use the same add-on for both Home Assistant dashboards and external websites. When HA Mode is off, you'll see a **Full URL** input field instead of the dashboard path selector.
 
 ## API Reference
 
