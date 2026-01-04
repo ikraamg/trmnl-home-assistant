@@ -5,15 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.4.0] - 2026-01-04
 
-### Added
+### Changed
 
-- Generic URL mode for capturing any website (not just Home Assistant)
-- PNG compression level control (`compression_level` parameter)
+- Updated schedule execution to return detailed webhook results
 - Manual black/white level adjustments with `levels_enabled` toggle
-- HA connection diagnostics banner with token preview and status
-- `?refresh=1` query param to force HA connection refresh
+- PNG compression level control (`compression_level` parameter)
+- Added Generic URL mode for capturing any website
+- Updated image processing to use ImageMagick
+- Removed dead code and consolidated duplicate functionality
+- Fix failing spec due to CI timing
 
 ## [0.3.2] - 2025-12-30
 
@@ -78,4 +80,5 @@ Based on the [puppet](https://github.com/balloob/home-assistant-addons/tree/main
 [0.3.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.2.2...v0.3.0
 [0.3.1]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.3.0...v0.3.1
 [0.3.2]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.3.1...v0.3.2
+[0.4.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.3.2...v0.4.0
 [0.2.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.1.0...v0.2.0
