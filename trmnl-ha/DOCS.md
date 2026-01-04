@@ -18,6 +18,8 @@ The add-on persists schedules and configuration in the `/data` directory (mounte
 
 This add-on can capture screenshots from **any website**, not just Home Assistant. Use it to convert any web content to e-ink optimized images.
 
+> **Pull vs Push:** Pull (displays request images on-demand) and Push (scheduled webhooks POST images to displays). See [Pull vs Push Architecture](#pull-vs-push-architecture) for details.
+
 ### Quick Start (Docker)
 
 ```bash
@@ -206,6 +208,32 @@ The add-on supports two screenshot modes:
 **HA Mode** (default): Uses the configured Home Assistant URL and token to capture authenticated dashboards with theme, language, and dark mode support.
 
 **Generic Mode**: Uses the `url` parameter to capture any public website. No authentication is injected, so it works with any publicly accessible URL.
+
+#### Pull vs Push Architecture
+
+Both modes support pull and push architectures:
+
+| Architecture | How it works | Example |
+|--------------|--------------|---------|
+| **Pull** | Display requests image on-demand via HTTP GET | `curl "http://localhost:10000/lovelace/0?viewport=800x480"` |
+| **Push** | Add-on captures on schedule and POSTs to webhook | Cron schedule with webhook URL configured |
+
+#### Example: Pull Architecture
+
+Capture an HA dashboard on-demand:
+```bash
+curl "http://localhost:10000/lovelace/0?viewport=800x480&dithering" --output dashboard.png
+```
+
+Capture an external image and convert to e-ink format:
+```bash
+curl "http://localhost:10000/?url=https://images.unsplash.com/photo-example&viewport=800x480&dithering&dither_method=floyd-steinberg&palette=bw" --output dithered.png
+```
+
+Pull is useful for:
+- Displays that poll for images (ESPHome, custom e-ink setups)
+- One-off image conversions
+- Testing dithering settings
 
 ## Device Presets
 
