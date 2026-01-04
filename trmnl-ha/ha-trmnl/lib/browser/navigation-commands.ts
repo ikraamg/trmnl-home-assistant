@@ -78,8 +78,11 @@ export class NavigateToPage {
     targetUrl?: string
   ): Promise<NavigationResult> {
     // Resolve the final URL: use targetUrl if provided, otherwise resolve against HA base
-    const pageUrl = targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
+    const pageUrl =
+      targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
     const injectAuth = this.#shouldInjectAuth(pageUrl)
+
+    log.info`Navigating to: ${pageUrl} (HA auth: ${injectAuth ? 'yes' : 'no'})`
 
     let evaluateId: { identifier: string } | undefined
 
@@ -131,7 +134,11 @@ export class NavigateToPage {
     const isMockHA = this.#page.url().includes('localhost:8123')
 
     if (isGenericUrl || isMockHA) {
-      const pageUrl = targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
+      const pageUrl =
+        targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
+      log.info`Navigating to: ${pageUrl} (mode: ${
+        isGenericUrl ? 'generic' : 'mock-HA'
+      })`
 
       let response
       try {
@@ -145,13 +152,11 @@ export class NavigateToPage {
       }
     } else {
       // Real HA: Use client-side navigation
+      const haUrl = new URL(pagePath, this.#homeAssistantUrl).toString()
+      log.info`Navigating to: ${haUrl} (mode: HA client-side)`
       await this.#page.evaluate((path: string) => {
         const state = history.state as { root?: boolean } | null
-        history.replaceState(
-          state?.root ? { root: true } : null,
-          '',
-          path
-        )
+        history.replaceState(state?.root ? { root: true } : null, '', path)
         const event = new Event('location-changed') as Event & {
           detail?: { replace: boolean }
         }
@@ -181,8 +186,9 @@ export class WaitForPageLoad {
           const haEl = document.querySelector('home-assistant')
           if (!haEl) return false
 
-          const mainEl = (haEl as Element & { shadowRoot: ShadowRoot | null })
-            .shadowRoot?.querySelector('home-assistant-main')
+          const mainEl = (
+            haEl as Element & { shadowRoot: ShadowRoot | null }
+          ).shadowRoot?.querySelector('home-assistant-main')
           if (!mainEl) return false
 
           const panelResolver = (
@@ -295,9 +301,9 @@ export class DismissToastsAndSetZoom {
       const haEl = document.querySelector('home-assistant')
       if (!haEl) return false
 
-      const notifyEl = haEl.shadowRoot?.querySelector('notification-manager') as
-        | (Element & { shadowRoot: ShadowRoot | null })
-        | null
+      const notifyEl = haEl.shadowRoot?.querySelector(
+        'notification-manager'
+      ) as (Element & { shadowRoot: ShadowRoot | null }) | null
       if (!notifyEl) return false
 
       const actionEl = notifyEl.shadowRoot?.querySelector(
@@ -324,7 +330,9 @@ export class UpdateLanguage {
   async call(lang: string): Promise<void> {
     await this.#page.evaluate((newLang: string) => {
       const haEl = document.querySelector('home-assistant') as
-        | (Element & { _selectLanguage?: (lang: string, reload: boolean) => void })
+        | (Element & {
+            _selectLanguage?: (lang: string, reload: boolean) => void
+          })
         | null
       haEl?._selectLanguage?.(newLang, false)
     }, lang || 'en')

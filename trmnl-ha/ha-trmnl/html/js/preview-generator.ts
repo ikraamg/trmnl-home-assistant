@@ -113,6 +113,15 @@ export class PreviewGenerator {
       if (schedule.dithering.saturationBoost) {
         params.append('saturation_boost', '')
       }
+      if (
+        schedule.dithering.compressionLevel &&
+        schedule.dithering.compressionLevel !== 9
+      ) {
+        params.append(
+          'compression_level',
+          String(schedule.dithering.compressionLevel)
+        )
+      }
     }
 
     return params
@@ -128,11 +137,15 @@ export class PreviewGenerator {
     const error = document.getElementById('errorMessage')
     const loadTime = document.getElementById('loadTime')
     const dimensions = document.getElementById('previewDimensions')
+    const fileSize = document.getElementById('previewFileSize')
+    const targetUrl = document.getElementById('previewTargetUrl')
 
     if (loading) {
       placeholder?.classList.add('hidden')
       image?.classList.add('hidden')
       dimensions?.classList.add('hidden')
+      fileSize?.classList.add('hidden')
+      targetUrl?.classList.add('hidden')
       error?.classList.add('hidden')
       loadingEl?.classList.remove('hidden')
       if (loadTime) loadTime.textContent = ''
@@ -155,14 +168,21 @@ export class PreviewGenerator {
   }
 
   /**
-   * Displays loaded image with metadata.
+   * Displays loaded image with metadata including file size and target URL.
    */
-  #displayImage(imageUrl: string, loadTimeMs: number): void {
+  #displayImage(
+    imageUrl: string,
+    loadTimeMs: number,
+    sizeBytes: number,
+    targetUrl: string
+  ): void {
     const image = document.getElementById(
       'previewImage'
     ) as HTMLImageElement | null
     const loadTime = document.getElementById('loadTime')
     const dimensions = document.getElementById('previewDimensions')
+    const fileSize = document.getElementById('previewFileSize')
+    const urlDisplay = document.getElementById('previewTargetUrl')
 
     if (!image) return
 
@@ -172,6 +192,25 @@ export class PreviewGenerator {
 
     if (loadTime) {
       loadTime.textContent = `${Math.round(loadTimeMs)}ms`
+    }
+
+    // Display file size with warning if over 50KB
+    if (fileSize) {
+      const sizeKB = (sizeBytes / 1024).toFixed(1)
+      const isOverLimit = sizeBytes > 50 * 1024
+      fileSize.textContent = `${sizeKB} KB`
+      fileSize.className = isOverLimit ? 'text-red-500 font-bold' : 'text-muted'
+      fileSize.title = isOverLimit
+        ? 'Warning: Image exceeds TRMNL 50KB limit'
+        : 'File size'
+      fileSize.classList.remove('hidden')
+    }
+
+    // Display target URL
+    if (urlDisplay) {
+      urlDisplay.textContent = targetUrl
+      urlDisplay.title = targetUrl
+      urlDisplay.classList.remove('hidden')
     }
 
     const img = new Image()
@@ -211,13 +250,18 @@ export class PreviewGenerator {
         params.append('url', target.fullUrl)
       }
 
+      // Build the display URL (what's actually being captured)
+      // @ts-expect-error window.uiConfig is injected by server
+      const uiConfig = window.uiConfig || { hassUrl: '' }
+      const displayUrl = target.fullUrl || `${uiConfig.hassUrl}${target.path}`
+
       const blob = await this.#fetchPreviewCmd.call(target.path, params)
       const imageUrl = URL.createObjectURL(blob)
 
       const endTime = performance.now()
       const loadTimeMs = endTime - startTime
 
-      this.#displayImage(imageUrl, loadTimeMs)
+      this.#displayImage(imageUrl, loadTimeMs, blob.size, displayUrl)
       this.#updateLoadingState(false)
     } catch (err) {
       console.error('Error loading preview:', err)

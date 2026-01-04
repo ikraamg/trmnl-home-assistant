@@ -331,6 +331,16 @@ class App {
         whiteLevel: parseIntOrDefault(input('s_white'), 100),
         normalize: checkbox('s_normalize'),
         saturationBoost: checkbox('s_saturation'),
+        compressionLevel: parseIntOrDefault(select('s_compression'), 9) as
+          | 1
+          | 2
+          | 3
+          | 4
+          | 5
+          | 6
+          | 7
+          | 8
+          | 9,
       },
 
       // Mode-specific fields: only update when in that mode, otherwise preserve existing

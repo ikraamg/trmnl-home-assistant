@@ -30,6 +30,8 @@ import type {
   ImageFormat,
   ColorPalette,
   GrayscalePalette,
+  BitDepth,
+  CompressionLevel,
 } from '../types/domain.js'
 import type {
   DitheringStrategy,
@@ -91,6 +93,10 @@ export interface DitheringOptions {
   invert?: boolean
   rotate?: RotationAngle | 0
   format?: ImageFormat
+  /** Override bit depth for PNG output (default: auto from palette) */
+  bitDepth?: BitDepth
+  /** PNG compression level 1-9 (default: 9, max compression) */
+  compressionLevel?: CompressionLevel
 }
 
 /** Validated dithering options with defaults applied */
@@ -333,6 +339,15 @@ export async function getImageInfo(imageBuffer: Buffer): Promise<ImageInfo> {
 /**
  * Applies advanced dithering with color reduction, level adjustments, and format conversion.
  */
+/** Result from dithering including size info */
+export interface DitheringResult {
+  buffer: Buffer
+  sizeBytes: number
+  sizeKB: number
+  bitDepth: number | null
+  compressionLevel: number
+}
+
 export async function applyDithering(
   imageBuffer: Buffer,
   options: DitheringOptions = {}
@@ -348,6 +363,8 @@ export async function applyDithering(
     invert = false,
     rotate = 0,
     format = 'png',
+    bitDepth: bitDepthOverride,
+    compressionLevel = 9,
   } = options
 
   const isColorPaletteMode = palette && COLOR_PALETTES[palette as ColorPalette]
@@ -388,7 +405,11 @@ export async function applyDithering(
       whiteLevel,
     })
     image = result.image
-    bitDepth = result.bitDepth
+    // Use override if provided, otherwise use calculated from palette
+    bitDepth = bitDepthOverride ?? result.bitDepth
+    if (bitDepthOverride && bitDepthOverride !== result.bitDepth) {
+      log.debug`Using custom bit depth ${bitDepthOverride} (palette default: ${result.bitDepth})`
+    }
   }
 
   // Apply color inversion if requested
@@ -418,12 +439,13 @@ export async function applyDithering(
       image = image.out('-type', 'Grayscale').out('-depth', String(bitDepth))
       log.debug`Outputting ${bitDepth}-bit grayscale PNG for e-ink`
     }
-    // PNG compression settings
+    // PNG compression settings (configurable level, 1-9)
     image = image
-      .define('png:compression-level=9')
+      .define(`png:compression-level=${compressionLevel}`)
       .define('png:compression-filter=5')
       .define('png:compression-strategy=1')
       .define('png:exclude-chunks=all')
+    log.debug`PNG compression level: ${compressionLevel}`
   }
 
   // Stream to final format
@@ -445,6 +467,13 @@ export async function applyDithering(
         if (buffer.length === 0) {
           reject(new Error(`ImageMagick produced empty ${format} output`))
         } else {
+          const sizeKB = (buffer.length / 1024).toFixed(1)
+          const status = buffer.length > 50 * 1024 ? '⚠️ OVER 50KB' : '✓'
+          log.info`Output: ${
+            buffer.length
+          } bytes (${sizeKB}KB) ${status} [depth:${
+            bitDepth ?? 'auto'
+          }, compression:${compressionLevel}]`
           resolve(buffer)
         }
       })

@@ -74,8 +74,8 @@ if (useMockHA) {
 export const hassUrl: string = useMockHA
   ? 'http://localhost:8123' // Mock HA server
   : isAddOn
-    ? options.home_assistant_url || 'http://homeassistant:8123'
-    : options.home_assistant_url || 'http://localhost:8123'
+  ? options.home_assistant_url || 'http://homeassistant:8123'
+  : options.home_assistant_url || 'http://localhost:8123'
 
 /**
  * Long-lived access token for Home Assistant authentication
@@ -113,8 +113,9 @@ export const keepBrowserOpen: boolean = options.keep_browser_open ?? false
 /**
  * Enable debug logging (from HA add-on configuration)
  * When true, sets log level to 'debug' for verbose output
+ * Default: true for development, controlled by options in production
  */
-export const debugLogging: boolean = options.debug_logging ?? false
+export const debugLogging: boolean = options.debug_logging ?? true
 
 // =============================================================================
 // SERVER CONFIGURATION
@@ -171,9 +172,7 @@ export const VALID_FORMATS: readonly ImageFormat[] = [
 /**
  * Valid rotation angles in degrees
  */
-export const VALID_ROTATIONS: readonly RotationAngle[] = [
-  90, 180, 270,
-] as const
+export const VALID_ROTATIONS: readonly RotationAngle[] = [90, 180, 270] as const
 
 /**
  * Color palette definitions for e-ink displays

@@ -15,6 +15,8 @@ import type {
   DitheringConfig,
   DitheringMethod,
   Palette,
+  BitDepth,
+  CompressionLevel,
 } from '../types/domain.js'
 
 /** Parsed screenshot parameters */
@@ -70,7 +72,10 @@ export class ScreenshotParamsParser {
       .split('x')
       .map((n) => parseInt(n))
 
-    if (viewportParams.length !== 2 || !viewportParams.every((x) => !isNaN(x))) {
+    if (
+      viewportParams.length !== 2 ||
+      !viewportParams.every((x) => !isNaN(x))
+    ) {
       return null
     }
 
@@ -83,10 +88,9 @@ export class ScreenshotParamsParser {
   /**
    * Parses image processing and Home Assistant configuration parameters.
    */
-  #parseProcessing(url: URL): Omit<
-    ParsedScreenshotParams,
-    'pagePath' | 'viewport' | 'dithering'
-  > {
+  #parseProcessing(
+    url: URL
+  ): Omit<ParsedScreenshotParams, 'pagePath' | 'viewport' | 'dithering'> {
     // Wait time
     let extraWait: number | undefined = parseInt(
       url.searchParams.get('wait') || ''
@@ -177,6 +181,20 @@ export class ScreenshotParamsParser {
     const normalize = url.searchParams.has('normalize')
     const saturationBoost = url.searchParams.has('saturation_boost')
 
+    let bitDepth: BitDepth | undefined
+    const bitDepthParam = parseInt(url.searchParams.get('bit_depth') || '')
+    if ([1, 2, 4, 8].includes(bitDepthParam)) {
+      bitDepth = bitDepthParam as BitDepth
+    }
+
+    let compressionLevel: CompressionLevel | undefined
+    const compressionParam = parseInt(
+      url.searchParams.get('compression_level') || ''
+    )
+    if (compressionParam >= 1 && compressionParam <= 9) {
+      compressionLevel = compressionParam as CompressionLevel
+    }
+
     return {
       dithering: {
         enabled: true,
@@ -187,6 +205,8 @@ export class ScreenshotParamsParser {
         whiteLevel,
         normalize,
         saturationBoost,
+        bitDepth,
+        compressionLevel,
       },
     }
   }

@@ -47,6 +47,12 @@ export type Palette = GrayscalePalette | ColorPalette
 /** Dithering algorithm methods */
 export type DitheringMethod = 'floyd-steinberg' | 'ordered' | 'threshold'
 
+/** Valid bit depth values for PNG output */
+export type BitDepth = 1 | 2 | 4 | 8
+
+/** Valid PNG compression levels (1-9, higher = smaller files but slower) */
+export type CompressionLevel = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9
+
 /** Dithering configuration for e-ink optimization */
 export interface DitheringConfig {
   enabled: boolean
@@ -57,6 +63,10 @@ export interface DitheringConfig {
   whiteLevel: number
   normalize: boolean
   saturationBoost: boolean
+  /** Override bit depth for PNG output (default: auto from palette) */
+  bitDepth?: BitDepth
+  /** PNG compression level 1-9 (default: 9, max compression) */
+  compressionLevel?: CompressionLevel
 }
 
 // =============================================================================

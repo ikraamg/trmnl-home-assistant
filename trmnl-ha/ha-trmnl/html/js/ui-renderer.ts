@@ -658,6 +658,32 @@ export class RenderScheduleContent {
             </label>
           </div>
           <p class="text-xs text-gray-500 mt-1">Normalize: Maximizes contrast | Saturation Boost: Makes colors pop 50% more</p>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Compression Level</label>
+            <select id="s_compression" class="w-full px-3 py-2 border rounded-md" style="border-color: var(--primary-light)"
+              onchange="window.app.updateScheduleFromForm()"
+              title="PNG compression level (higher = smaller files, slower)">
+              ${[9, 8, 7, 6, 5, 4, 3, 2, 1]
+                .map(
+                  (level) => `
+                <option value="${level}" ${
+                    (s.dithering?.compressionLevel ?? 9) === level
+                      ? 'selected'
+                      : ''
+                  }>${level} ${
+                    level === 9
+                      ? '(max compression)'
+                      : level === 1
+                      ? '(fastest)'
+                      : ''
+                  }</option>
+              `
+                )
+                .join('')}
+            </select>
+            <p class="text-xs text-gray-500 mt-1">Higher = smaller files but slower. Default 9 (max). Try 6-7 if processing is slow.</p>
+          </div>
         </div>
       </div>
     `
@@ -708,7 +734,13 @@ export class RenderScheduleContent {
           </div>
         </div>
         <img id="previewImage" src="" alt="Preview" class="preview-img hidden" />
-        <p id="previewDimensions" class="text-xs text-gray-500 mt-2 text-center hidden"></p>
+        <div class="text-center mt-2 space-y-1">
+          <div class="flex justify-center gap-4">
+            <span id="previewDimensions" class="text-xs text-gray-500 hidden"></span>
+            <span id="previewFileSize" class="text-xs hidden"></span>
+          </div>
+          <p id="previewTargetUrl" class="text-xs text-gray-400 font-mono truncate max-w-full hidden" title="Target URL"></p>
+        </div>
       </div>
 
       <div id="errorMessage" class="hidden mt-4 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded-md">
