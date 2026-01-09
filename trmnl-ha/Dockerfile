@@ -6,24 +6,11 @@
 # =============================================================================
 # STAGE 1: DEPENDENCY BUILDER
 # =============================================================================
-FROM debian:bookworm-slim AS builder
-
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install Bun (baseline version for maximum CPU compatibility)
-# NOTE: Using baseline build to support CPUs without AVX2 (e.g., Synology DS918+, older Proxmox VMs)
+# NOTE: Using official Bun image which ships with baseline x64 builds for maximum
+# CPU compatibility (supports Synology DS918+, older Proxmox VMs, CPUs without AVX2)
+# See: https://github.com/oven-sh/bun/issues/21623
 # See: https://github.com/usetrmnl/trmnl-home-assistant/issues/5
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    unzip \
-    ca-certificates \
-    && curl -fsSL https://bun.sh/install | BUN_RUNTIME=baseline bash
-
-# Add Bun to PATH for this stage
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="$BUN_INSTALL/bin:$PATH"
+FROM oven/bun:1.3.5-slim AS builder
 
 WORKDIR /build
 
@@ -63,11 +50,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     imagemagick
 
 # Copy Bun runtime from builder stage
-COPY --from=builder /root/.bun /root/.bun
-
-# Add Bun to PATH
-ENV BUN_INSTALL="/root/.bun"
-ENV PATH="$BUN_INSTALL/bin:$PATH"
+# NOTE: /usr/local/bin is already in PATH, no additional ENV needed
+COPY --from=builder /usr/local/bin/bun /usr/local/bin/bun
 
 # Verify Bun is available
 RUN bun --version
