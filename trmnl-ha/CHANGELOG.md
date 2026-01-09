@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-01-09
+
+### Changed
+
+- Fixed washed-out gray output by enabling normalize for all palettes
 ## [0.4.3] - 2026-01-09
 
 ### Changed
@@ -108,4 +113,5 @@ Based on the [puppet](https://github.com/balloob/home-assistant-addons/tree/main
 [0.4.1]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.0...v0.4.1
 [0.4.2]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.1...v0.4.2
 [0.4.3]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.2...v0.4.3
+[0.4.4]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.3...v0.4.4
 [0.2.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.1.0...v0.2.0
