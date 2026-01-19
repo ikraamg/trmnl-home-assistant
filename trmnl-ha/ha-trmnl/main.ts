@@ -237,6 +237,12 @@ class RequestHandler {
       const elapsed = Date.now() - start.getTime()
       log.info`Screenshot complete: ${image.length} bytes in ${elapsed}ms`
 
+      // Warn if screenshot is suspiciously small (likely blank/login page)
+      if (image.length < 1000) {
+        log.warning`Screenshot is very small (${image.length} bytes) - page may be blank or showing a login screen`
+        log.warning`This usually indicates an invalid access token. Check your HA token is valid.`
+      }
+
       this.#sendImage(response, image, params.format)
       if (params.next) this.#scheduleNextRequest(requestId, params, start)
     } finally {

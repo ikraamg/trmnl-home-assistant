@@ -18,7 +18,12 @@
 
 import puppeteer from 'puppeteer'
 import type { Browser as PuppeteerBrowser, Page, Viewport } from 'puppeteer'
-import { debugLogging, isAddOn, chromiumExecutable, HEADER_HEIGHT } from './const.js'
+import {
+  debugLogging,
+  isAddOn,
+  chromiumExecutable,
+  HEADER_HEIGHT,
+} from './const.js'
 import {
   CannotOpenPageError,
   BrowserCrashError,
@@ -288,7 +293,10 @@ export class Browser {
         browserLog.trace`Frame navigated: ${frame.url()}`
       })
       .on('console', (message) => {
-        browserLog.trace`CONSOLE ${message.type().slice(0, 3).toUpperCase()} ${message.text()}`
+        browserLog.trace`CONSOLE ${message
+          .type()
+          .slice(0, 3)
+          .toUpperCase()} ${message.text()}`
       })
       .on('error', (err) => {
         browserLog.error`Page error: ${err}`
@@ -308,7 +316,9 @@ export class Browser {
         this.#pageErrorDetected = true
       })
       .on('requestfailed', (request) => {
-        browserLog.debug`Request failed: ${request.failure()?.errorText} ${request.url()}`
+        browserLog.debug`Request failed: ${
+          request.failure()?.errorText
+        } ${request.url()}`
       })
 
     // Verbose response logging in debug mode
@@ -403,6 +413,16 @@ export class Browser {
         )
         waitTime = result.waitTime
         this.#lastRequestedPath = effectivePath
+
+        // Check if we landed on HA login/auth page (indicates invalid token)
+        const currentUrl = page.url()
+        if (currentUrl.includes('/auth/')) {
+          log.error`INVALID ACCESS TOKEN - Redirected to login page: ${currentUrl}`
+          log.error`Your Home Assistant access token appears to be invalid or expired`
+          log.error`Please generate a new Long-Lived Access Token in your HA profile:`
+          log.error`  Profile -> Security -> Long-Lived Access Tokens -> Create Token`
+          // Continue anyway - will capture the login page (helps user see the issue)
+        }
       }
 
       // Apply page setup strategy (HA vs Generic have different requirements)

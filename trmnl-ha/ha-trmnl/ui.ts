@@ -19,7 +19,6 @@ import {
 import type {
   HassConfig,
   Connection,
-  Auth,
   ConnectionOptions,
 } from 'home-assistant-js-websocket'
 import type { HaWebSocket as LibHaWebSocket } from 'home-assistant-js-websocket/dist/socket.js'
@@ -98,6 +97,9 @@ let cachedHassData: HomeAssistantData | null = null
 /** Timestamp when cache was last populated */
 let cacheTimestamp: number = 0
 
+/** Tracks if the last connection error was an invalid auth token */
+let lastConnectionErrorWasAuth: boolean = false
+
 // =============================================================================
 // CUSTOM WEBSOCKET WITH SSL BYPASS
 // =============================================================================
@@ -160,10 +162,10 @@ async function checkDnsResolution(
 function createSocketWithSslBypass(
   options: ConnectionOptions
 ): Promise<LibHaWebSocket> {
-  const auth = options.auth as Auth
-  if (!auth) {
+  if (!options.auth) {
     throw new Error('Auth is required for WebSocket connection')
   }
+  const auth = options.auth
 
   const wsUrl = auth.wsUrl
   const isSecure = wsUrl.startsWith('wss://')
@@ -237,7 +239,14 @@ function createSocketWithSslBypass(
       }
 
       const handleMessage = async (event: WebSocket.MessageEvent) => {
-        const message = JSON.parse(event.data.toString())
+        const rawData =
+          typeof event.data === 'string'
+            ? event.data
+            : (event.data as Buffer).toString()
+        const message = JSON.parse(rawData) as {
+          type: string
+          ha_version?: string
+        }
         log.debug`WebSocket message received: ${message.type}`
 
         switch (message.type) {
@@ -252,8 +261,8 @@ function createSocketWithSslBypass(
             socket.removeEventListener('message', handleMessage)
             socket.removeEventListener('close', closeMessage)
             socket.removeEventListener('error', closeMessage)
-            socket.haVersion = message.ha_version
-            log.info`Connected to Home Assistant ${message.ha_version}`
+            socket.haVersion = message.ha_version ?? ''
+            log.info`Connected to Home Assistant ${message.ha_version ?? 'unknown'}`
 
             if (atLeastHaVersion(socket.haVersion, 2022, 9)) {
               socket.send(JSON.stringify(messages.supportedFeatures()))
@@ -454,9 +463,19 @@ async function fetchHomeAssistantData(): Promise<HomeAssistantData> {
     }
 
     log.info`Successfully fetched HA data (${dashboards.length} dashboards)`
+    lastConnectionErrorWasAuth = false // Clear on success
     return { themes: themesResult, network: networkResult, config, dashboards }
   } catch (err) {
-    await logConnectionDiagnostics(hassUrl, err)
+    // Check if this was an authentication error
+    if (err === ERR_INVALID_AUTH) {
+      lastConnectionErrorWasAuth = true
+      log.error`INVALID ACCESS TOKEN - Home Assistant rejected your token`
+      log.error`Please generate a new Long-Lived Access Token in your HA profile`
+      log.error`Profile -> Security -> Long-Lived Access Tokens -> Create Token`
+    } else {
+      lastConnectionErrorWasAuth = false
+      await logConnectionDiagnostics(hassUrl, err)
+    }
     return { themes: null, network: null, config: null, dashboards: null }
   }
 }
@@ -534,6 +553,9 @@ export async function handleUIRequest(
       connectionStatus = 'Connected'
     } else if (!hassToken) {
       connectionStatus = 'No token configured'
+    } else if (lastConnectionErrorWasAuth) {
+      connectionStatus =
+        'Invalid access token - please generate a new token in HA'
     } else if (!hassData.themes && !hassData.config) {
       connectionStatus = 'Connection failed - could not reach HA'
     } else if (!hassData.themes) {

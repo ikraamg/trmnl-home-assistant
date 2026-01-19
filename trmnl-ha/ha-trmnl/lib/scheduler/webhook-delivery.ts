@@ -73,7 +73,10 @@ export async function uploadToWebhook(
 
       // Try to parse JSON error response (e.g., {"error": "Image bit depth..."})
       try {
-        const parsed = JSON.parse(responseText)
+        const parsed = JSON.parse(responseText) as {
+          error?: string
+          message?: string
+        }
         if (parsed.error) {
           errorDetail = ` - ${parsed.error}`
         } else if (parsed.message) {
