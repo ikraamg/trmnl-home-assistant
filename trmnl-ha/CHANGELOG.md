@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.10] - 2026-01-20
+
+### Changed
+
+- Added smart wait detection for slow-loading widgets
+- Fixed trailing slash in Home Assistant URL causing connection failures
 ## [0.4.9] - 2026-01-19
 
 ### Changed
@@ -145,4 +151,5 @@ Based on the [puppet](https://github.com/balloob/home-assistant-addons/tree/main
 [0.4.7]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.6...v0.4.7
 [0.4.8]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.7...v0.4.8
 [0.4.9]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.8...v0.4.9
+[0.4.10]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.9...v0.4.10
 [0.2.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.1.0...v0.2.0
