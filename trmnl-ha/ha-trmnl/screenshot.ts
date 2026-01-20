@@ -33,6 +33,8 @@ import { processImage } from './lib/dithering.js'
 import {
   NavigateToPage,
   WaitForPageStable,
+  WaitForNetworkIdle,
+  WaitForLoadingComplete,
   type AuthStorage,
 } from './lib/browser/navigation-commands.js'
 import { getPageSetupStrategy } from './lib/browser/page-setup-strategies.js'
@@ -138,6 +140,7 @@ export interface NavigateParams {
   /** Full target URL (if provided, overrides pagePath + base URL resolution) */
   targetUrl?: string
   viewport: Viewport
+  /** Custom timeout for smart wait detection (default: 15000ms) */
   extraWait?: number
   zoom?: number
   lang?: string
@@ -391,7 +394,6 @@ export class Browser {
         await page.setViewport(viewport)
       }
 
-      let waitTime = 0
       const isFirstNavigation = this.#lastRequestedPath === undefined
 
       // Navigate to page if path changed (or different targetUrl)
@@ -406,12 +408,7 @@ export class Browser {
           authStorage,
           this.#homeAssistantUrl
         )
-        const result = await navigateCmd.call(
-          pagePath,
-          isFirstNavigation,
-          targetUrl
-        )
-        waitTime = result.waitTime
+        await navigateCmd.call(pagePath, isFirstNavigation, targetUrl)
         this.#lastRequestedPath = effectivePath
 
         // Check if we landed on HA login/auth page (indicates invalid token)
@@ -439,23 +436,31 @@ export class Browser {
         lastDarkMode: this.#lastRequestedDarkMode,
       })
 
-      waitTime += setupResult.waitTime
       if (setupResult.langChanged) this.#lastRequestedLang = lang
       if (setupResult.themeChanged) {
         this.#lastRequestedTheme = theme
         this.#lastRequestedDarkMode = dark
       }
 
-      // Apply smart wait strategy
-      if (extraWait !== undefined && extraWait !== null && extraWait > 0) {
-        log.debug`Explicit wait: ${extraWait}ms`
-        await new Promise((resolve) => setTimeout(resolve, extraWait))
-      } else {
-        const maxWait = waitTime > 0 ? waitTime : 3000
-        const waitStableCmd = new WaitForPageStable(page, maxWait)
-        const actualWait = await waitStableCmd.call()
-        log.debug`Smart wait: ${actualWait}ms (max: ${maxWait}ms)`
-      }
+      // Smart wait: network idle + loading indicators + stability
+      // User can override timeout via 'wait' parameter (default: 15 seconds)
+      const maxWait = extraWait && extraWait > 0 ? extraWait : 15000
+
+      // Step 1: Wait for network activity to settle (catches async API calls)
+      const networkCmd = new WaitForNetworkIdle(page, maxWait, 500)
+      const networkWait = await networkCmd.call()
+      log.debug`Network idle after ${networkWait}ms`
+
+      // Step 2: Wait for loading indicators to disappear
+      const loadingCmd = new WaitForLoadingComplete(page, Math.max(1000, maxWait - networkWait))
+      const loadingWait = await loadingCmd.call()
+      log.debug`Loading complete after ${loadingWait}ms`
+
+      // Step 3: Final stability check (content stops changing)
+      const remainingTime = Math.max(1000, maxWait - networkWait - loadingWait)
+      const stableCmd = new WaitForPageStable(page, remainingTime)
+      const stableWait = await stableCmd.call()
+      log.debug`Smart wait total: ${networkWait + loadingWait + stableWait}ms`
 
       return { time: Date.now() - start }
     } catch (err) {

@@ -136,7 +136,9 @@ export class NavigateToPage {
     if (isGenericUrl || !isCurrentlyOnHA) {
       const pageUrl =
         targetUrl || new URL(pagePath, this.#homeAssistantUrl).toString()
-      log.info`Navigating to: ${pageUrl} (mode: ${isGenericUrl ? 'generic' : 'full-reload'})`
+      log.info`Navigating to: ${pageUrl} (mode: ${
+        isGenericUrl ? 'generic' : 'full-reload'
+      })`
 
       let response
       try {
@@ -273,6 +275,162 @@ export class WaitForPageStable {
 
     const actualWait = Date.now() - start
     log.debug`Page stability timeout after ${actualWait}ms`
+    return actualWait
+  }
+}
+
+/**
+ * Waits for network activity to settle (no pending requests).
+ *
+ * Tracks XHR/Fetch requests and waits until no requests are in-flight
+ * for a specified quiet period. This catches async data loading from widgets.
+ */
+export class WaitForNetworkIdle {
+  #page: Page
+  #timeout: number
+  #idleTime: number
+
+  constructor(page: Page, timeout: number = 10000, idleTime: number = 500) {
+    this.#page = page
+    this.#timeout = timeout
+    this.#idleTime = idleTime
+  }
+
+  /**
+   * Waits for network to be idle or timeout.
+   * @returns Actual wait time in milliseconds
+   */
+  async call(): Promise<number> {
+    const start = Date.now()
+
+    try {
+      // Use CDP to monitor network activity
+      const client = await this.#page.createCDPSession()
+      await client.send('Network.enable')
+
+      let pendingRequests = 0
+      let lastActivityTime = Date.now()
+
+      const onRequestWillBeSent = () => {
+        pendingRequests++
+        lastActivityTime = Date.now()
+      }
+
+      const onLoadingFinished = () => {
+        pendingRequests = Math.max(0, pendingRequests - 1)
+        lastActivityTime = Date.now()
+      }
+
+      const onLoadingFailed = () => {
+        pendingRequests = Math.max(0, pendingRequests - 1)
+        lastActivityTime = Date.now()
+      }
+
+      client.on('Network.requestWillBeSent', onRequestWillBeSent)
+      client.on('Network.loadingFinished', onLoadingFinished)
+      client.on('Network.loadingFailed', onLoadingFailed)
+
+      // Wait for network to be idle
+      while (Date.now() - start < this.#timeout) {
+        const timeSinceLastActivity = Date.now() - lastActivityTime
+        const isIdle = pendingRequests === 0 && timeSinceLastActivity >= this.#idleTime
+
+        if (isIdle) {
+          const actualWait = Date.now() - start
+          log.debug`Network idle after ${actualWait}ms`
+          await client.detach()
+          return actualWait
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 100))
+      }
+
+      await client.detach()
+      const actualWait = Date.now() - start
+      log.debug`Network idle timeout after ${actualWait}ms (${pendingRequests} pending)`
+      return actualWait
+    } catch (err) {
+      // CDP not available or error - fall through gracefully
+      log.debug`Network idle detection unavailable: ${(err as Error).message}`
+      return Date.now() - start
+    }
+  }
+}
+
+/**
+ * Waits for Home Assistant loading indicators to disappear.
+ *
+ * Detects common HA loading patterns: circular progress spinners,
+ * skeleton loaders, and loading placeholders.
+ */
+export class WaitForLoadingComplete {
+  #page: Page
+  #timeout: number
+
+  constructor(page: Page, timeout: number = 10000) {
+    this.#page = page
+    this.#timeout = timeout
+  }
+
+  /**
+   * Waits for loading indicators to disappear or timeout.
+   * @returns Actual wait time in milliseconds
+   */
+  async call(): Promise<number> {
+    const start = Date.now()
+
+    // Common HA loading indicator selectors
+    const loadingSelectors = [
+      'ha-circular-progress',
+      '.loading',
+      '.spinner',
+      '[loading]',
+      'hui-card-preview', // Card preview placeholder
+    ].join(', ')
+
+    while (Date.now() - start < this.#timeout) {
+      const hasLoadingIndicators = await this.#page.evaluate((selectors) => {
+        const haEl = document.querySelector('home-assistant')
+        if (!haEl?.shadowRoot) return false
+
+        // Check for loading indicators in shadow DOM
+        const checkShadowRoot = (root: ShadowRoot | Document): boolean => {
+          const indicators = Array.from(root.querySelectorAll(selectors))
+          for (const el of indicators) {
+            // Only count visible indicators
+            const style = window.getComputedStyle(el)
+            if (style.display !== 'none' && style.visibility !== 'hidden') {
+              return true
+            }
+          }
+
+          // Recursively check shadow roots
+          const elementsWithShadow = Array.from(root.querySelectorAll('*'))
+          for (const el of elementsWithShadow) {
+            if ((el as Element & { shadowRoot?: ShadowRoot }).shadowRoot) {
+              if (checkShadowRoot((el as Element & { shadowRoot: ShadowRoot }).shadowRoot)) {
+                return true
+              }
+            }
+          }
+
+          return false
+        }
+
+        return checkShadowRoot(haEl.shadowRoot)
+      }, loadingSelectors)
+
+      if (!hasLoadingIndicators) {
+        const actualWait = Date.now() - start
+        log.debug`Loading indicators cleared after ${actualWait}ms`
+        return actualWait
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100))
+    }
+
+    const actualWait = Date.now() - start
+    log.debug`Loading indicator timeout after ${actualWait}ms`
     return actualWait
   }
 }
