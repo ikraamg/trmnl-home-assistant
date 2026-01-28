@@ -10,13 +10,17 @@
  * @module tests/unit/config-helpers
  */
 
-import { describe, it, expect } from 'bun:test'
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test'
+import { mkdirSync, writeFileSync, rmSync, existsSync } from 'fs'
+import { join } from 'path'
 import {
   isValidTimezone,
   hasEnvConfig,
   detectIsAddOn,
   parseEnvBoolean,
   isNetworkError,
+  parseOptionsFile,
+  OptionsParseError,
   BROWSER_PATHS,
   NETWORK_ERROR_PATTERNS,
 } from '../../lib/config-helpers.js'
@@ -294,13 +298,13 @@ describe('BROWSER_PATHS', () => {
 
   it('includes macOS paths', () => {
     expect(BROWSER_PATHS).toContain(
-      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     )
   })
 
   it('includes WSL paths', () => {
     expect(BROWSER_PATHS).toContain(
-      '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe'
+      '/mnt/c/Program Files/Google/Chrome/Application/chrome.exe',
     )
   })
 
@@ -320,5 +324,150 @@ describe('NETWORK_ERROR_PATTERNS', () => {
 
   it('has 4 patterns', () => {
     expect(NETWORK_ERROR_PATTERNS.length).toBe(4)
+  })
+})
+
+// =============================================================================
+// Options File Parsing
+// =============================================================================
+
+describe('parseOptionsFile', () => {
+  const testDir = join(import.meta.dir, 'test-fixtures')
+  const validJsonPath = join(testDir, 'valid-options.json')
+  const invalidJsonPath = join(testDir, 'invalid-options.json')
+  const nonExistentPath = join(testDir, 'does-not-exist.json')
+
+  beforeAll(() => {
+    // Create test directory
+    if (!existsSync(testDir)) {
+      mkdirSync(testDir, { recursive: true })
+    }
+
+    // Create valid JSON file
+    writeFileSync(
+      validJsonPath,
+      JSON.stringify({
+        home_assistant_url: 'http://homeassistant:8123',
+        access_token: 'test-token',
+        debug_logging: true,
+      }),
+    )
+
+    // Create invalid JSON file
+    writeFileSync(invalidJsonPath, '{ invalid json content }}}')
+  })
+
+  afterAll(() => {
+    // Cleanup test files
+    rmSync(testDir, { recursive: true, force: true })
+  })
+
+  describe('valid JSON files', () => {
+    it('parses valid options file', () => {
+      const options = parseOptionsFile(validJsonPath)
+
+      expect(options.home_assistant_url).toBe('http://homeassistant:8123')
+      expect(options.access_token).toBe('test-token')
+      expect(options.debug_logging).toBe(true)
+    })
+
+    it('returns empty object for empty JSON object file', () => {
+      const emptyPath = join(testDir, 'empty-options.json')
+      writeFileSync(emptyPath, '{}')
+
+      const options = parseOptionsFile(emptyPath)
+
+      expect(options).toEqual({})
+    })
+
+    it('handles optional fields being undefined', () => {
+      const minimalPath = join(testDir, 'minimal-options.json')
+      writeFileSync(minimalPath, '{"access_token": "token"}')
+
+      const options = parseOptionsFile(minimalPath)
+
+      expect(options.access_token).toBe('token')
+      expect(options.home_assistant_url).toBeUndefined()
+      expect(options.timezone).toBeUndefined()
+    })
+  })
+
+  describe('invalid JSON files', () => {
+    it('throws OptionsParseError for malformed JSON', () => {
+      expect(() => parseOptionsFile(invalidJsonPath)).toThrow(OptionsParseError)
+    })
+
+    it('includes file path in error', () => {
+      try {
+        parseOptionsFile(invalidJsonPath)
+        expect(true).toBe(false) // Should not reach here
+      } catch (err) {
+        expect(err).toBeInstanceOf(OptionsParseError)
+        const parseError = err as OptionsParseError
+        expect(parseError.filePath).toBe(invalidJsonPath)
+        expect(parseError.message).toContain(invalidJsonPath)
+      }
+    })
+
+    it('includes original error as cause', () => {
+      try {
+        parseOptionsFile(invalidJsonPath)
+        expect(true).toBe(false) // Should not reach here
+      } catch (err) {
+        expect(err).toBeInstanceOf(OptionsParseError)
+        const parseError = err as OptionsParseError
+        expect(parseError.cause).toBeInstanceOf(Error)
+        expect(parseError.cause.message).toBeTruthy()
+      }
+    })
+  })
+
+  describe('missing files', () => {
+    it('throws OptionsParseError for non-existent file', () => {
+      expect(() => parseOptionsFile(nonExistentPath)).toThrow(OptionsParseError)
+    })
+
+    it('includes file path in error for missing file', () => {
+      try {
+        parseOptionsFile(nonExistentPath)
+        expect(true).toBe(false) // Should not reach here
+      } catch (err) {
+        expect(err).toBeInstanceOf(OptionsParseError)
+        const parseError = err as OptionsParseError
+        expect(parseError.filePath).toBe(nonExistentPath)
+      }
+    })
+  })
+})
+
+describe('OptionsParseError', () => {
+  it('has correct name property', () => {
+    const cause = new Error('Original error')
+    const error = new OptionsParseError('/path/to/file.json', cause)
+
+    expect(error.name).toBe('OptionsParseError')
+  })
+
+  it('includes file path in message', () => {
+    const cause = new Error('Original error')
+    const error = new OptionsParseError('/path/to/file.json', cause)
+
+    expect(error.message).toContain('/path/to/file.json')
+  })
+
+  it('preserves cause error', () => {
+    const cause = new Error('JSON parse error at position 5')
+    const error = new OptionsParseError('/path/to/file.json', cause)
+
+    expect(error.cause).toBe(cause)
+    expect(error.cause.message).toBe('JSON parse error at position 5')
+  })
+
+  it('is instanceof Error', () => {
+    const cause = new Error('Original error')
+    const error = new OptionsParseError('/path/to/file.json', cause)
+
+    expect(error).toBeInstanceOf(Error)
+    expect(error).toBeInstanceOf(OptionsParseError)
   })
 })

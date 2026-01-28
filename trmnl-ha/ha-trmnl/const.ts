@@ -16,7 +16,7 @@
 // valid certificates can override this by setting NODE_TLS_REJECT_UNAUTHORIZED=1
 // =============================================================================
 
-import { readFileSync, existsSync } from 'fs'
+import { existsSync } from 'fs'
 import type {
   ImageFormat,
   RotationAngle,
@@ -45,6 +45,9 @@ import {
   detectIsAddOn,
   findBrowser,
   isNetworkError,
+  parseOptionsFile,
+  OptionsParseError,
+  type Options,
   NETWORK_ERROR_PATTERNS as SCHEDULER_NETWORK_ERROR_PATTERNS_IMPORT,
 } from './lib/config-helpers.js'
 
@@ -52,14 +55,8 @@ import {
 // OPTIONS LOADING (ENV VARS → JSON FILE)
 // =============================================================================
 
-interface Options {
-  home_assistant_url?: string
-  access_token?: string
-  timezone?: string
-  chromium_executable?: string
-  keep_browser_open?: boolean
-  debug_logging?: boolean
-}
+// NOTE: Early startup log before any config parsing - helps diagnose silent crashes
+console.log('[Startup] TRMNL HA initializing...')
 
 /**
  * Check if running with environment variable configuration
@@ -73,25 +70,47 @@ const hasEnvConfig = checkEnvConfig(process.env)
  * Optional when using environment variables
  */
 const optionsFile = ['./options-dev.json', '/data/options.json'].find(
-  existsSync
+  existsSync,
 )
 
 // Require config file OR environment variables
 if (!optionsFile && !hasEnvConfig) {
   console.error(
-    'No configuration found. Either:\n' +
+    '[Startup] FATAL: No configuration found. Either:\n' +
       '  1. Set HOME_ASSISTANT_URL and ACCESS_TOKEN environment variables, or\n' +
-      '  2. Create options-dev.json (copy from options-dev.json.example)'
+      '  2. Create options-dev.json (copy from options-dev.json.example)',
   )
   process.exit(1)
 }
 
 /**
+ * Load options from JSON file with clear error messaging
+ * Uses parseOptionsFile from config-helpers which throws OptionsParseError on failure
+ */
+function loadOptionsFileSafe(filePath: string): Options {
+  try {
+    return parseOptionsFile(filePath)
+  } catch (err) {
+    if (err instanceof OptionsParseError) {
+      console.error(`[Startup] FATAL: ${err.message}`)
+      console.error(`[Startup] Error: ${err.cause.message}`)
+      console.error(
+        '[Startup] Check your addon configuration in Home Assistant',
+      )
+    } else {
+      const message = err instanceof Error ? err.message : String(err)
+      console.error(
+        `[Startup] FATAL: Unexpected error loading config: ${message}`,
+      )
+    }
+    process.exit(1)
+  }
+}
+
+/**
  * Load options from JSON file (if present)
  */
-const fileOptions: Options = optionsFile
-  ? (JSON.parse(readFileSync(optionsFile, 'utf-8')) as Options)
-  : {}
+const fileOptions: Options = optionsFile ? loadOptionsFileSafe(optionsFile) : {}
 
 /**
  * Merged options: environment variables take precedence over file config
@@ -134,13 +153,13 @@ if (timezone) {
 
   if (!isValid) {
     console.warn(
-      `[Config] ⚠️ Invalid timezone "${timezone}" - will fall back to UTC!`
+      `[Config] ⚠️ Invalid timezone "${timezone}" - will fall back to UTC!`,
     )
     console.warn(
-      '[Config] Valid examples: America/New_York, Europe/London, Asia/Tokyo'
+      '[Config] Valid examples: America/New_York, Europe/London, Asia/Tokyo',
     )
     console.warn(
-      '[Config] Full list: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones'
+      '[Config] Full list: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones',
     )
   }
 
@@ -182,7 +201,7 @@ export const useMockHA: boolean = process.env['MOCK_HA'] === 'true'
 
 if (useMockHA) {
   console.log(
-    '[Mock] Running in MOCK mode - using mock HA server on localhost:8123'
+    '[Mock] Running in MOCK mode - using mock HA server on localhost:8123',
   )
 }
 
@@ -198,8 +217,8 @@ if (useMockHA) {
 const rawHassUrl: string = useMockHA
   ? 'http://localhost:8123' // Mock HA server
   : isAddOn
-  ? options.home_assistant_url || 'http://homeassistant:8123'
-  : options.home_assistant_url || 'http://localhost:8123'
+    ? options.home_assistant_url || 'http://homeassistant:8123'
+    : options.home_assistant_url || 'http://localhost:8123'
 
 export const hassUrl: string = rawHassUrl.replace(/\/+$/, '')
 
@@ -225,7 +244,7 @@ export const hassToken: string | undefined = useMockHA
 // Standalone users may intentionally skip the token for generic URL screenshots
 if (!hassToken && !useMockHA && isAddOn) {
   console.warn(
-    'No access token configured. UI will show configuration instructions.'
+    'No access token configured. UI will show configuration instructions.',
   )
 }
 
@@ -269,7 +288,7 @@ export const SERVER_PORT: number = 10000
  * Default increased from 30s to 60s for better performance under intermittent load
  */
 export const BROWSER_TIMEOUT: number = parseInt(
-  process.env['BROWSER_TIMEOUT'] || '60000'
+  process.env['BROWSER_TIMEOUT'] || '60000',
 )
 
 /**
@@ -280,7 +299,7 @@ export const BROWSER_TIMEOUT: number = parseInt(
  * Configurable via MAX_SCREENSHOTS_BEFORE_RESTART environment variable
  */
 export const MAX_SCREENSHOTS_BEFORE_RESTART: number = parseInt(
-  process.env['MAX_SCREENSHOTS_BEFORE_RESTART'] || '100'
+  process.env['MAX_SCREENSHOTS_BEFORE_RESTART'] || '100',
 )
 
 /**
@@ -333,15 +352,40 @@ export const PALETTES: Record<Palette, PaletteConfig> = {
   },
   'color-7a': {
     label: label('color-7a'),
-    colors: ['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF8C00'],
+    colors: [
+      '#000000',
+      '#FFFFFF',
+      '#FF0000',
+      '#00FF00',
+      '#0000FF',
+      '#FFFF00',
+      '#FF8C00',
+    ],
   },
   'color-7b': {
     label: label('color-7b'),
-    colors: ['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF'],
+    colors: [
+      '#000000',
+      '#FFFFFF',
+      '#FF0000',
+      '#00FF00',
+      '#0000FF',
+      '#FFFF00',
+      '#00FFFF',
+    ],
   },
   'color-8a': {
     label: label('color-8a'),
-    colors: ['#000000', '#FFFFFF', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#00FFFF', '#FF8C00'],
+    colors: [
+      '#000000',
+      '#FFFFFF',
+      '#FF0000',
+      '#00FF00',
+      '#0000FF',
+      '#FFFF00',
+      '#00FFFF',
+      '#FF8C00',
+    ],
   },
 }
 
@@ -353,15 +397,16 @@ export const PALETTES: Record<Palette, PaletteConfig> = {
 export const COLOR_PALETTES: ColorPaletteDefinition = Object.fromEntries(
   Object.entries(PALETTES)
     .filter(([_, config]) => isColorPalette(config))
-    .map(([key, config]) => [key, (config as { colors: string[] }).colors])
+    .map(([key, config]) => [key, (config as { colors: string[] }).colors]),
 ) as ColorPaletteDefinition
 
 /** Grayscale palettes (gray levels) - derived from PALETTES */
-export const GRAYSCALE_PALETTES: GrayscalePaletteDefinition = Object.fromEntries(
-  Object.entries(PALETTES)
-    .filter(([_, config]) => isGrayscalePalette(config))
-    .map(([key, config]) => [key, (config as { levels: number }).levels])
-) as GrayscalePaletteDefinition
+export const GRAYSCALE_PALETTES: GrayscalePaletteDefinition =
+  Object.fromEntries(
+    Object.entries(PALETTES)
+      .filter(([_, config]) => isGrayscalePalette(config))
+      .map(([key, config]) => [key, (config as { levels: number }).levels]),
+  ) as GrayscalePaletteDefinition
 
 /**
  * Default wait time after page load (milliseconds)
