@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-01-31
+
+### Changed
+
+- Added BYOS Hanami webhook format with JWT authentication
+- Added startup logging and safe config parsing
 ## [0.4.12] - 2026-01-20
 
 ### Changed
@@ -164,4 +170,5 @@ Based on the [puppet](https://github.com/balloob/home-assistant-addons/tree/main
 [0.4.10]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.9...v0.4.10
 [0.4.11]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.10...v0.4.11
 [0.4.12]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.11...v0.4.12
+[0.5.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.4.12...v0.5.0
 [0.2.0]: https://github.com/usetrmnl/trmnl-home-assistant/compare/v0.1.0...v0.2.0
