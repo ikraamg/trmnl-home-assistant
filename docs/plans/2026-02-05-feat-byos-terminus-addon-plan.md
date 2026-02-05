@@ -256,17 +256,17 @@ From simplicity review - single workflow instead of three.
 
 **Tasks:**
 
-- [ ] **2.1 Create single GitHub Actions workflow**
+- [x] **2.1 Create single GitHub Actions workflow**
   - Trigger on push to main AND byos_hanami releases
   - Multi-arch build (amd64, aarch64)
   - Push to GHCR
   - Add `bundle audit` for security scanning
 
-- [ ] **2.2 Version synchronization**
+- [x] **2.2 Version synchronization**
   - Extract version from upstream release tag
   - Update add-on version automatically
 
-- [ ] **2.3 Documentation**
+- [x] **2.3 Documentation**
   - README.md with feature overview
   - DOCS.md with detailed setup guide (including security warning about port 2300)
   - CHANGELOG.md
