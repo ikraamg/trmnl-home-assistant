@@ -1,0 +1,7 @@
+#!/command/with-contenv bash
+# Sidekiq graceful shutdown
+
+echo "[sidekiq] Service stopping (exit code: $1, signal: $2)"
+
+# Sidekiq handles SIGTERM gracefully (finishes current jobs)
+exit 0

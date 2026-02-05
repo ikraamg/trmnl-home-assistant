@@ -1,0 +1,44 @@
+#!/command/with-contenv bash
+# PostgreSQL 16 service with s6-notifyoncheck readiness
+
+set -e
+
+# PostgreSQL data directory
+PGDATA="/data/postgres"
+PGCONF="/etc/terminus/postgresql.conf"
+
+# Initialize database if needed
+if [ ! -f "$PGDATA/PG_VERSION" ]; then
+    echo "[postgres] Initializing database..."
+
+    # Initialize with minimal settings
+    su-exec postgres initdb \
+        --pgdata="$PGDATA" \
+        --auth=trust \
+        --encoding=UTF8 \
+        --locale=C
+
+    # Copy our optimized config
+    if [ -f "$PGCONF" ]; then
+        cp "$PGCONF" "$PGDATA/postgresql.conf"
+    fi
+
+    # Configure pg_hba.conf for local connections
+    cat > "$PGDATA/pg_hba.conf" << 'EOF'
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            trust
+host    all             all             ::1/128                 trust
+EOF
+
+    echo "[postgres] Database initialized"
+fi
+
+# Ensure correct ownership
+chown -R postgres:postgres "$PGDATA"
+
+# Use s6-notifyoncheck for readiness notification
+# This runs data/check every 1s until it succeeds, then notifies fd 3
+exec s6-notifyoncheck -d -n 60 -s 1000 -w 2000 \
+    s6-setuidgid postgres \
+    postgres -D "$PGDATA"

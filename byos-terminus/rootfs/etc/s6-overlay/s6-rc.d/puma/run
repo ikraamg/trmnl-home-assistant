@@ -1,0 +1,53 @@
+#!/command/with-contenv bash
+# Puma web server with inline database migrations
+
+set -e
+
+cd /app
+
+# Load environment from bashio (HA config)
+export HANAMI_ENV="${HANAMI_ENV:-production}"
+export RACK_ENV="${RACK_ENV:-production}"
+export HANAMI_PORT="${HANAMI_PORT:-2300}"
+export HANAMI_SERVE_ASSETS=true
+
+# Construct DATABASE_URL for local PostgreSQL
+export DATABASE_URL="postgres://postgres@localhost/terminus"
+
+# Construct REDIS_URL for local Valkey (Unix socket for performance)
+export REDIS_URL="unix:///var/run/valkey/valkey.sock"
+
+# Also set KEYVALUE_URL (Terminus naming)
+export KEYVALUE_URL="$REDIS_URL"
+
+# Load APP_SECRET from generated file or generate
+if [ -f /data/.app_secret ]; then
+    export APP_SECRET=$(cat /data/.app_secret)
+fi
+
+# Load API_URI from HA config or use default
+if [ -f /data/options.json ] && [ -n "$(jq -r '.api_uri // empty' /data/options.json 2>/dev/null)" ]; then
+    export API_URI=$(jq -r '.api_uri' /data/options.json)
+fi
+
+echo "[puma] Environment: HANAMI_ENV=$HANAMI_ENV, PORT=$HANAMI_PORT"
+
+# Create database if it doesn't exist
+echo "[puma] Ensuring database exists..."
+psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'terminus'" | grep -q 1 || \
+    psql -U postgres -c "CREATE DATABASE terminus"
+
+# Run database migrations
+echo "[puma] Running database migrations..."
+if [ -f ./bin/hanami ]; then
+    bundle exec hanami db migrate 2>&1 || echo "[puma] Warning: Migration may have failed"
+else
+    # Fallback to direct sequel migrations
+    bundle exec rake db:migrate 2>&1 || echo "[puma] Warning: Migration may have failed"
+fi
+
+echo "[puma] Starting Puma web server..."
+
+# Run as app user
+exec s6-setuidgid app \
+    bundle exec puma --config ./config/puma.rb

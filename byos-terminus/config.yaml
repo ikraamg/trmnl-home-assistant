@@ -1,0 +1,64 @@
+# BYOS Terminus - Home Assistant Add-on
+# Self-hosted TRMNL device management platform
+name: "BYOS Terminus"
+description: "Self-hosted TRMNL device management platform - full BYOS backend"
+version: "0.1.0"
+slug: "byos-terminus"
+url: "https://github.com/usetrmnl/home-assistant-addons"
+image: ghcr.io/usetrmnl/byos-terminus-{arch}
+
+# Architecture support
+arch:
+  - amd64
+  - aarch64
+
+# Use s6-overlay init system (bundled in container)
+init: false
+
+# No Home Assistant API needed - standalone backend
+homeassistant_api: false
+
+# Ingress for sidebar access
+ingress: true
+ingress_port: 2300
+ingress_stream: true
+
+# Sidebar integration
+panel_icon: "mdi:devices"
+panel_title: "BYOS Terminus"
+
+# Direct port access for TRMNL devices
+ports:
+  2300/tcp: 2300
+ports_description:
+  2300/tcp: "API for TRMNL devices (required for device connectivity)"
+
+# Health monitoring via watchdog
+watchdog: "http://[HOST]:[PORT:2300]/up"
+
+# Hot backup support - PostgreSQL + Valkey
+backup: hot
+backup_pre: /usr/local/bin/backup-pre.sh
+backup_post: /usr/local/bin/backup-post.sh
+backup_exclude:
+  - "*/logs/*"
+  - "*/tmp/*"
+
+# Volume mappings
+map:
+  - share:rw
+
+# Configuration options
+options:
+  timezone: ""
+  log_level: "info"
+  api_uri: ""
+
+# Schema for options validation
+schema:
+  timezone: str?
+  log_level: list(debug|info|warn|error)?
+  api_uri: str?
+
+# Mark as experimental until stable
+stage: experimental

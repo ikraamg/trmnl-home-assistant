@@ -1,0 +1,14 @@
+#!/command/with-contenv bash
+# Valkey graceful shutdown
+
+echo "[valkey] Service stopping (exit code: $1, signal: $2)"
+
+VALKEY_SOCK="/var/run/valkey/valkey.sock"
+
+# Request graceful shutdown if running
+if [ -S "$VALKEY_SOCK" ]; then
+    echo "[valkey] Requesting graceful shutdown..."
+    valkey-cli -s "$VALKEY_SOCK" SHUTDOWN NOSAVE 2>/dev/null || true
+fi
+
+exit 0

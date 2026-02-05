@@ -1,0 +1,20 @@
+#!/command/with-contenv bash
+# Valkey (Redis-compatible) service with s6-notifyoncheck readiness
+
+set -e
+
+VALKEY_DATA="/data/valkey"
+VALKEY_CONF="/etc/terminus/valkey.conf"
+VALKEY_SOCK="/var/run/valkey/valkey.sock"
+
+# Ensure data directory exists
+mkdir -p "$VALKEY_DATA"
+mkdir -p "$(dirname "$VALKEY_SOCK")"
+
+# Use s6-notifyoncheck for readiness notification
+exec s6-notifyoncheck -d -n 30 -s 500 -w 1000 \
+    valkey-server "$VALKEY_CONF" \
+        --dir "$VALKEY_DATA" \
+        --unixsocket "$VALKEY_SOCK" \
+        --unixsocketperm 770 \
+        --daemonize no

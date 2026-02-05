@@ -1,0 +1,12 @@
+#!/command/with-contenv bash
+# PostgreSQL graceful shutdown
+
+echo "[postgres] Service stopping (exit code: $1, signal: $2)"
+
+# Request graceful shutdown via pg_ctl if postgres is running
+if pgrep -x postgres > /dev/null 2>&1; then
+    echo "[postgres] Requesting graceful shutdown..."
+    su-exec postgres pg_ctl stop -D /data/postgres -m fast -w -t 30 2>/dev/null || true
+fi
+
+exit 0

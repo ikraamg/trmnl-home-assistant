@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+docs/
+
+# Development
+.env*
+.ruby-lsp/
+.vscode/
+*.log
+
+# Testing
+coverage/
+spec/
+test/
+
+# Build artifacts
+tmp/
+*.tmp
+
+# macOS
+.DS_Store

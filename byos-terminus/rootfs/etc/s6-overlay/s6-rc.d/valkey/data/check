@@ -1,0 +1,10 @@
+#!/bin/bash
+# Valkey readiness check for s6-notifyoncheck
+VALKEY_SOCK="/var/run/valkey/valkey.sock"
+
+# Check if socket exists and responds to PING
+if [ -S "$VALKEY_SOCK" ]; then
+    valkey-cli -s "$VALKEY_SOCK" ping 2>/dev/null | grep -q PONG
+else
+    exit 1
+fi

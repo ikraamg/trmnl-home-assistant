@@ -1,0 +1,35 @@
+#!/command/with-contenv bash
+# Sidekiq background job processor
+
+set -e
+
+cd /app
+
+# Load environment
+export HANAMI_ENV="${HANAMI_ENV:-production}"
+export RACK_ENV="${RACK_ENV:-production}"
+
+# Construct DATABASE_URL for local PostgreSQL
+export DATABASE_URL="postgres://postgres@localhost/terminus"
+
+# Construct REDIS_URL for local Valkey (Unix socket for performance)
+export REDIS_URL="unix:///var/run/valkey/valkey.sock"
+export KEYVALUE_URL="$REDIS_URL"
+
+# Load APP_SECRET from generated file
+if [ -f /data/.app_secret ]; then
+    export APP_SECRET=$(cat /data/.app_secret)
+fi
+
+# Load API_URI from HA config
+if [ -f /data/options.json ] && [ -n "$(jq -r '.api_uri // empty' /data/options.json 2>/dev/null)" ]; then
+    export API_URI=$(jq -r '.api_uri' /data/options.json)
+fi
+
+echo "[sidekiq] Starting Sidekiq worker..."
+
+# Run as app user with reduced concurrency for RPi4
+exec s6-setuidgid app \
+    bundle exec sidekiq \
+        -r ./config/sidekiq.rb \
+        -c 3
