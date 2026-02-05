@@ -11,8 +11,12 @@ PGCONF="/etc/terminus/postgresql.conf"
 if [ ! -f "$PGDATA/PG_VERSION" ]; then
     echo "[postgres] Initializing database..."
 
-    # Initialize with minimal settings
-    su-exec postgres initdb \
+    # Ensure data directory exists and has correct ownership
+    mkdir -p "$PGDATA"
+    chown postgres:postgres "$PGDATA"
+
+    # Initialize with minimal settings (Debian path)
+    s6-setuidgid postgres /usr/lib/postgresql/16/bin/initdb \
         --pgdata="$PGDATA" \
         --auth=trust \
         --encoding=UTF8 \
@@ -31,6 +35,7 @@ host    all             all             127.0.0.1/32            trust
 host    all             all             ::1/128                 trust
 EOF
 
+    chown postgres:postgres "$PGDATA/pg_hba.conf" "$PGDATA/postgresql.conf"
     echo "[postgres] Database initialized"
 fi
 
@@ -41,4 +46,4 @@ chown -R postgres:postgres "$PGDATA"
 # This runs data/check every 1s until it succeeds, then notifies fd 3
 exec s6-notifyoncheck -d -n 60 -s 1000 -w 2000 \
     s6-setuidgid postgres \
-    postgres -D "$PGDATA"
+    /usr/lib/postgresql/16/bin/postgres -D "$PGDATA"

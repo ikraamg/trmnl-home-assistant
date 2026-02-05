@@ -1,3 +1,3 @@
 #!/bin/bash
 # PostgreSQL readiness check for s6-notifyoncheck
-exec pg_isready -h localhost -U postgres -q
+exec /usr/lib/postgresql/16/bin/pg_isready -h localhost -U postgres -q

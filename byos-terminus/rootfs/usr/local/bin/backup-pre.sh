@@ -13,9 +13,10 @@ echo "[backup] Starting hot backup preparation..."
 # Using pg_backup_start (PostgreSQL 15+) for consistent backup
 # This creates a backup label and ensures WAL is archived properly
 echo "[backup] Starting PostgreSQL backup mode..."
-if ! psql -U postgres -c "SELECT pg_backup_start('ha_backup', fast => true)" 2>/dev/null; then
+PSQL="/usr/lib/postgresql/16/bin/psql"
+if ! $PSQL -U postgres -c "SELECT pg_backup_start('ha_backup', fast => true)" 2>/dev/null; then
     # Fallback to pg_start_backup for older PostgreSQL
-    psql -U postgres -c "SELECT pg_start_backup('ha_backup', true, false)" 2>/dev/null || \
+    $PSQL -U postgres -c "SELECT pg_start_backup('ha_backup', true, false)" 2>/dev/null || \
         echo "[backup] Warning: Could not start PostgreSQL backup mode"
 fi
 

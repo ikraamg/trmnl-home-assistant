@@ -21,9 +21,12 @@ if [ -f /data/.app_secret ]; then
     export APP_SECRET=$(cat /data/.app_secret)
 fi
 
-# Load API_URI from HA config
+# Load API_URI from HA config or use default
+export HANAMI_PORT="${HANAMI_PORT:-2300}"
 if [ -f /data/options.json ] && [ -n "$(jq -r '.api_uri // empty' /data/options.json 2>/dev/null)" ]; then
     export API_URI=$(jq -r '.api_uri' /data/options.json)
+else
+    export API_URI="http://localhost:${HANAMI_PORT}"
 fi
 
 echo "[sidekiq] Starting Sidekiq worker..."

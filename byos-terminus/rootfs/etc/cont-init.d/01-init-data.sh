@@ -16,10 +16,15 @@ chown -R postgres:postgres /data/postgres
 chown -R root:root /data/valkey
 chown -R 1000:1000 /data/uploads 2>/dev/null || true
 
-# Create socket directories
+# Create socket directories with shared group access
 mkdir -p /var/run/valkey
 mkdir -p /var/run/postgresql
 chown postgres:postgres /var/run/postgresql
+
+# Ensure app user exists and can access valkey socket
+# The upstream terminus image creates user 'app' (UID 1000)
+# We need to set socket directory permissions so app user can connect
+chmod 777 /var/run/valkey
 
 # ============================================
 # SECURITY: Generate secrets on first run

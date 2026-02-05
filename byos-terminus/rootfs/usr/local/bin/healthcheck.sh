@@ -5,7 +5,7 @@
 set -e
 
 # Check PostgreSQL
-if ! pg_isready -U postgres -q; then
+if ! /usr/lib/postgresql/16/bin/pg_isready -U postgres -q; then
     echo "PostgreSQL not ready"
     exit 1
 fi
@@ -22,8 +22,9 @@ else
     exit 1
 fi
 
-# Check Puma via /up endpoint
-if ! curl -sf http://localhost:2300/up > /dev/null 2>&1; then
+# Check Puma via /up endpoint (uses configurable port)
+HANAMI_PORT="${HANAMI_PORT:-2300}"
+if ! curl -sf "http://localhost:${HANAMI_PORT}/up" > /dev/null 2>&1; then
     echo "Puma not responding"
     exit 1
 fi

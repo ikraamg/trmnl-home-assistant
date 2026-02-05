@@ -16,5 +16,5 @@ exec s6-notifyoncheck -d -n 30 -s 500 -w 1000 \
     valkey-server "$VALKEY_CONF" \
         --dir "$VALKEY_DATA" \
         --unixsocket "$VALKEY_SOCK" \
-        --unixsocketperm 770 \
+        --unixsocketperm 777 \
         --daemonize no

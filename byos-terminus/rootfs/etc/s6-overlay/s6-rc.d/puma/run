@@ -28,23 +28,23 @@ fi
 # Load API_URI from HA config or use default
 if [ -f /data/options.json ] && [ -n "$(jq -r '.api_uri // empty' /data/options.json 2>/dev/null)" ]; then
     export API_URI=$(jq -r '.api_uri' /data/options.json)
+else
+    # Default to localhost with port - user should configure in HA options for device connectivity
+    export API_URI="http://localhost:${HANAMI_PORT}"
 fi
 
 echo "[puma] Environment: HANAMI_ENV=$HANAMI_ENV, PORT=$HANAMI_PORT"
 
 # Create database if it doesn't exist
 echo "[puma] Ensuring database exists..."
-psql -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'terminus'" | grep -q 1 || \
-    psql -U postgres -c "CREATE DATABASE terminus"
+PSQL="/usr/lib/postgresql/16/bin/psql"
+$PSQL -U postgres -tc "SELECT 1 FROM pg_database WHERE datname = 'terminus'" | grep -q 1 || \
+    $PSQL -U postgres -c "CREATE DATABASE terminus"
 
-# Run database migrations
+# Run database migrations (as app user for proper permissions)
 echo "[puma] Running database migrations..."
-if [ -f ./bin/hanami ]; then
-    bundle exec hanami db migrate 2>&1 || echo "[puma] Warning: Migration may have failed"
-else
-    # Fallback to direct sequel migrations
-    bundle exec rake db:migrate 2>&1 || echo "[puma] Warning: Migration may have failed"
-fi
+s6-setuidgid app bundle exec hanami db migrate
+echo "[puma] Migrations complete"
 
 echo "[puma] Starting Puma web server..."
 

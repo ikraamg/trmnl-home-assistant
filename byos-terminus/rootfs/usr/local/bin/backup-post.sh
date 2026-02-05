@@ -12,9 +12,10 @@ echo "[backup] Completing hot backup..."
 # =============================================================================
 # CRITICAL: Must call this or WAL files accumulate forever
 echo "[backup] Stopping PostgreSQL backup mode..."
-if ! psql -U postgres -c "SELECT pg_backup_stop()" 2>/dev/null; then
+PSQL="/usr/lib/postgresql/16/bin/psql"
+if ! $PSQL -U postgres -c "SELECT pg_backup_stop()" 2>/dev/null; then
     # Fallback to pg_stop_backup for older PostgreSQL
-    psql -U postgres -c "SELECT pg_stop_backup()" 2>/dev/null || \
+    $PSQL -U postgres -c "SELECT pg_stop_backup()" 2>/dev/null || \
         echo "[backup] Warning: Could not stop PostgreSQL backup mode"
 fi
 
