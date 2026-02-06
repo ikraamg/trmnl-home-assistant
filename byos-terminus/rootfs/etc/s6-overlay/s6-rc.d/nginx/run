@@ -5,6 +5,25 @@
 set -e
 
 NGINX_CONF="/etc/terminus/nginx.conf"
+PUMA_PORT=3000
+MAX_WAIT=60
+
+echo "[nginx] Waiting for Puma to be ready on port $PUMA_PORT..."
+
+# Wait for Puma to be listening
+WAITED=0
+while ! curl -sf "http://127.0.0.1:${PUMA_PORT}/up" > /dev/null 2>&1; do
+    if [ $WAITED -ge $MAX_WAIT ]; then
+        echo "[nginx] ERROR: Puma not ready after ${MAX_WAIT}s, starting anyway..."
+        break
+    fi
+    sleep 1
+    WAITED=$((WAITED + 1))
+done
+
+if [ $WAITED -lt $MAX_WAIT ]; then
+    echo "[nginx] Puma is ready after ${WAITED}s"
+fi
 
 echo "[nginx] Starting nginx reverse proxy..."
 

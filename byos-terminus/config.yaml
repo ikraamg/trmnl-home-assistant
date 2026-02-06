@@ -1,6 +1,6 @@
 name: "BYOS Terminus"
 description: "Self-hosted TRMNL device management platform - full BYOS backend"
-version: "0.2.0"
+version: "0.2.1"
 slug: "byos-terminus"
 url: "https://github.com/ikraamg/trmnl-home-assistant"
 image: ghcr.io/ikraamg/byos-terminus-{arch}

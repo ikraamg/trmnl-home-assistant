@@ -61,7 +61,7 @@ LABEL \
     io.hass.name="BYOS Terminus" \
     io.hass.description="Self-hosted TRMNL device management platform" \
     io.hass.type="addon" \
-    io.hass.version="0.2.0"
+    io.hass.version="0.2.1"
 
 # Install PostgreSQL 16, Valkey, nginx, bashio, and dependencies
 RUN apt-get update -qq && \
