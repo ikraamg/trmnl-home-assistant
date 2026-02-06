@@ -1,6 +1,6 @@
 name: "BYOS Terminus"
 description: "Self-hosted TRMNL device management platform - full BYOS backend"
-version: "0.1.0"
+version: "0.1.1"
 slug: "byos-terminus"
 url: "https://github.com/ikraamg/trmnl-home-assistant"
 image: ghcr.io/ikraamg/byos-terminus-{arch}
@@ -12,14 +12,12 @@ arch:
   - amd64
 stage: stable
 
-# Ingress for sidebar access
-ingress: true
-ingress_port: 2300
-ingress_stream: true
+# Ingress disabled - Terminus doesn't support HA ingress base path yet
+# Use direct port access at http://homeassistant.local:2300 instead
+ingress: false
 
-# Sidebar integration
-panel_icon: "mdi:devices"
-panel_title: "BYOS Terminus"
+# panel_icon: "mdi:devices"
+# panel_title: "BYOS Terminus"
 
 # Direct port access for TRMNL devices
 ports:
