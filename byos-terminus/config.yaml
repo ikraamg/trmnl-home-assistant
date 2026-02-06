@@ -1,5 +1,3 @@
-# BYOS Terminus - Home Assistant Add-on
-# Self-hosted TRMNL device management platform
 name: "BYOS Terminus"
 description: "Self-hosted TRMNL device management platform - full BYOS backend"
 version: "0.1.0"
@@ -8,6 +6,7 @@ url: "https://github.com/ikraamg/trmnl-home-assistant"
 image: ghcr.io/ikraamg/byos-terminus-{arch}
 homeassistant_api: false
 init: false
+apparmor: false
 arch:
   - aarch64
   - amd64
@@ -31,15 +30,6 @@ ports_description:
 # Health monitoring
 watchdog: "http://[HOST]:[PORT:2300]/up"
 
-# Backup settings
-backup_exclude:
-  - "*/logs/*"
-  - "*/tmp/*"
-
-# Volume mappings
-map:
-  - share:rw
-
 # Configuration options
 options:
   timezone: ""
@@ -48,5 +38,10 @@ options:
 
 schema:
   timezone: str?
-  log_level: list(debug|info|warn|error)?
+  log_level: str?
   api_uri: str?
+
+# Backup settings
+backup_exclude:
+  - "*/logs/*"
+  - "*/tmp/*"
