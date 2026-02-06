@@ -46,6 +46,13 @@ echo "[puma] Running database migrations..."
 s6-setuidgid app bundle exec hanami db migrate
 echo "[puma] Migrations complete"
 
+# Compile assets if not already compiled (first run only)
+if [ ! -d "/app/public/assets/_authentication" ]; then
+    echo "[puma] Compiling assets (first run)..."
+    bundle exec hanami assets compile 2>/dev/null || echo "[puma] Warning: Asset compilation may have issues"
+    echo "[puma] Assets compiled"
+fi
+
 echo "[puma] Starting Puma web server..."
 
 # Run as app user
