@@ -22,10 +22,10 @@ else
     exit 1
 fi
 
-# Check Puma via /up endpoint (uses configurable port)
-HANAMI_PORT="${HANAMI_PORT:-2300}"
-if ! curl -sf "http://localhost:${HANAMI_PORT}/up" > /dev/null 2>&1; then
-    echo "Puma not responding"
+# Check nginx/Puma via /up endpoint
+# nginx listens on 2300 and proxies to Puma on 3000
+if ! curl -sf "http://localhost:2300/up" > /dev/null 2>&1; then
+    echo "nginx/Puma not responding"
     exit 1
 fi
 

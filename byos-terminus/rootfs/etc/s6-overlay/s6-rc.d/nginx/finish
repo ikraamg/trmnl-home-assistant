@@ -1,0 +1,6 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# Nginx graceful shutdown
+
+echo "[nginx] Service stopping (exit code: $1, signal: $2)"
+exit 0
