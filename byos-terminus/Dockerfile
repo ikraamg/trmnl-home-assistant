@@ -53,15 +53,14 @@ ENV S6_SERVICES_GRACETIME=30000
 # Environment for HA add-on
 ENV HANAMI_ENV=production
 ENV RACK_ENV=production
-# Puma listens on 3000, nginx proxies from 2300
-ENV HANAMI_PORT=3000
+ENV HANAMI_PORT=2300
 
 # Labels for Home Assistant
 LABEL \
     io.hass.name="BYOS Terminus" \
     io.hass.description="Self-hosted TRMNL device management platform" \
     io.hass.type="addon" \
-    io.hass.version="0.2.1"
+    io.hass.version="0.2.2"
 
 # Install PostgreSQL 16, Valkey, nginx, bashio, and dependencies
 RUN apt-get update -qq && \
@@ -71,8 +70,6 @@ RUN apt-get update -qq && \
         # Valkey (Redis-compatible)
         valkey-server \
         valkey-tools \
-        # Nginx for ingress proxy
-        nginx \
         # Utilities
         jq \
         curl \
