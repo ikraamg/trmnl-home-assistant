@@ -5,7 +5,7 @@ description: "Self-hosted TRMNL device management platform - full BYOS backend"
 version: "0.1.0"
 slug: "byos-terminus"
 url: "https://github.com/usetrmnl/home-assistant-addons"
-image: ghcr.io/usetrmnl/byos-terminus-{arch}
+image: ghcr.io/ikraamg/byos-terminus-{arch}
 
 # Architecture support
 arch:
