@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# PostgreSQL 16 service with s6-notifyoncheck readiness
+# shellcheck shell=bash# PostgreSQL 16 service with s6-notifyoncheck readiness
 
 set -e
 

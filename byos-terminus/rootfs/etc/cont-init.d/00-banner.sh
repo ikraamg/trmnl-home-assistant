@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+# shellcheck shell=bash
 # BYOS Terminus startup banner
 
 VERSION="0.1.0"

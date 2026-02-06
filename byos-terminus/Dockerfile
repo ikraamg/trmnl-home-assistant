@@ -1,4 +1,6 @@
 # syntax=docker/dockerfile:1.4
+# hadolint global ignore=DL3008
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # BYOS Terminus - Home Assistant Add-on
 # Packages the full Terminus platform with embedded PostgreSQL + Valkey
 
@@ -11,6 +13,7 @@ ARG S6_OVERLAY_VERSION=3.2.0.2
 # ============================================================================
 # Stage 1: s6-overlay installer
 # ============================================================================
+# hadolint ignore=DL3018
 FROM alpine:3.21 AS s6-installer
 
 ARG S6_OVERLAY_VERSION
@@ -34,9 +37,11 @@ RUN apk add --no-cache curl tar xz && \
 # ============================================================================
 # Stage 2: Final runtime image
 # ============================================================================
+# hadolint ignore=DL3006
 FROM ${BUILD_FROM}
 
-# Switch to root for installation
+# Switch to root for installation (required for s6-overlay process management)
+# hadolint ignore=DL3002
 USER root
 
 # Environment for s6-overlay
@@ -98,6 +103,7 @@ RUN chown -R root:root /var/run/valkey /data/valkey
 COPY rootfs /
 
 # Make scripts executable
+# hadolint ignore=SC2015
 RUN chmod +x /etc/cont-init.d/* && \
     chmod +x /usr/local/bin/* && \
     chmod +x /etc/s6-overlay/s6-rc.d/*/run 2>/dev/null || true && \
@@ -105,6 +111,7 @@ RUN chmod +x /etc/cont-init.d/* && \
     chmod +x /etc/s6-overlay/s6-rc.d/*/data/check 2>/dev/null || true
 
 # Fix app directory permissions for uploads
+# hadolint ignore=SC2015
 RUN chown -R app:app /app/public/uploads 2>/dev/null || true && \
     ln -sf /data/uploads /app/public/uploads 2>/dev/null || true
 

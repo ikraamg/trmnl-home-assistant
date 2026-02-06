@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# Sidekiq background job processor
+# shellcheck shell=bash# Sidekiq background job processor
 
 set -e
 

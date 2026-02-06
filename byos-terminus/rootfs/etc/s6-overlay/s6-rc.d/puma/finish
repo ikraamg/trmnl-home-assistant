@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# Puma graceful shutdown
+# shellcheck shell=bash# Puma graceful shutdown
 
 echo "[puma] Service stopping (exit code: $1, signal: $2)"
 

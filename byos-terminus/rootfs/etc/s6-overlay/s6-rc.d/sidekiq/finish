@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# Sidekiq graceful shutdown
+# shellcheck shell=bash# Sidekiq graceful shutdown
 
 echo "[sidekiq] Service stopping (exit code: $1, signal: $2)"
 

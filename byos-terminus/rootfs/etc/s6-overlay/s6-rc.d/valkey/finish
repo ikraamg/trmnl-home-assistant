@@ -1,5 +1,5 @@
 #!/command/with-contenv bash
-# Valkey graceful shutdown
+# shellcheck shell=bash# Valkey graceful shutdown
 
 echo "[valkey] Service stopping (exit code: $1, signal: $2)"
 

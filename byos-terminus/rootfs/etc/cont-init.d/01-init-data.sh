@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+# shellcheck shell=bash
 # BYOS Terminus data initialization and security setup
 
 set -e
