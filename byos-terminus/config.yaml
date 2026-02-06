@@ -10,7 +10,7 @@ apparmor: false
 arch:
   - aarch64
   - amd64
-stage: experimental
+stage: stable
 
 # Ingress for sidebar access
 ingress: true
