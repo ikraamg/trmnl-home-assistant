@@ -1,6 +1,4 @@
 # syntax=docker/dockerfile:1.4
-# hadolint global ignore=DL3008
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # BYOS Terminus - Home Assistant Add-on
 # Packages the full Terminus platform with embedded PostgreSQL + Valkey
 
@@ -13,13 +11,13 @@ ARG S6_OVERLAY_VERSION=3.2.0.2
 # ============================================================================
 # Stage 1: s6-overlay installer
 # ============================================================================
-# hadolint ignore=DL3018
 FROM alpine:3.21 AS s6-installer
 
 ARG S6_OVERLAY_VERSION
 ARG TARGETARCH
 
 # Download s6-overlay for the target architecture
+# hadolint ignore=DL3018
 RUN apk add --no-cache curl tar xz && \
     # Map Docker arch to s6-overlay arch
     case "${TARGETARCH}" in \
@@ -39,6 +37,9 @@ RUN apk add --no-cache curl tar xz && \
 # ============================================================================
 # hadolint ignore=DL3006
 FROM ${BUILD_FROM}
+
+# Set shell for pipefail support
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Switch to root for installation (required for s6-overlay process management)
 # hadolint ignore=DL3002
