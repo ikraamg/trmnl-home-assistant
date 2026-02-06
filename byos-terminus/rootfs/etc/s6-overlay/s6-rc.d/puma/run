@@ -1,5 +1,6 @@
 #!/command/with-contenv bash
-# shellcheck shell=bash# Puma web server with inline database migrations
+# shellcheck shell=bash
+# Puma web server with inline database migrations
 
 set -e
 
